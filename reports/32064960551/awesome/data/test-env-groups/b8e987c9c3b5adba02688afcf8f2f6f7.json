@@ -1,1 +1,0 @@
-{"id":"b8e987c9c3b5adba02688afcf8f2f6f7","fullName":"tests.testinfra.LocalChromePinTest.applyRejectsForeignMajor","name":"apply rejects a browserVersion from another major","status":"passed","testResultsByEnv":{"default":"f1b162c9f66b7f4ecd087e1fa91afb4d"}}
