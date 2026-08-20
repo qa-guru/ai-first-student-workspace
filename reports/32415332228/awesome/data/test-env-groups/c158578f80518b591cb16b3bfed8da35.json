@@ -1,1 +1,0 @@
-{"id":"c158578f80518b591cb16b3bfed8da35","fullName":"dev.multistack.app.service.NoteServiceTest.patchTextTooLong","name":"patch rejects text longer than 2000","status":"passed","testResultsByEnv":{"default":"8390d190c8b2fe7221f8372c4ccf9bc2"}}
