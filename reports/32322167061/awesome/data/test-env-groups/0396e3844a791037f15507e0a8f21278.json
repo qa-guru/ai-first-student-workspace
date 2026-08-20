@@ -1,1 +1,0 @@
-{"id":"0396e3844a791037f15507e0a8f21278","fullName":"tests.testinfra.TokensCssTest.parseRootTokensRejectsMissingRootBlock","name":"parseRootTokens rejects css without :root block","status":"passed","testResultsByEnv":{"default":"8b4377cf3964a050f9f42817ba643b41"}}

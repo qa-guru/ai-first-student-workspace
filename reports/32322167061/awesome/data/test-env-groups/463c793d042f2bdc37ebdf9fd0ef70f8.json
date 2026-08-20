@@ -1,1 +1,0 @@
-{"id":"463c793d042f2bdc37ebdf9fd0ef70f8","fullName":"tests.testinfra.ConfigReaderTest.privateConstructorIsReachable","name":"private constructor keeps utility class closed","status":"passed","testResultsByEnv":{"default":"fc3ca0b6f65592c73f257b4af0e6adaa"}}

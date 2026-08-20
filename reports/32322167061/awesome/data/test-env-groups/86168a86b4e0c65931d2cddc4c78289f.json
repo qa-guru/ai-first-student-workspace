@@ -1,1 +1,0 @@
-{"id":"86168a86b4e0c65931d2cddc4c78289f","fullName":"dev.multistack.app.controller.NoteControllerTest.getRequiresAuthentication","name":"GET /api/note without token returns 401","status":"passed","testResultsByEnv":{"default":"9d0b8f87be4ebdfb27437611a7552699"}}
