@@ -1,1 +1,0 @@
-{"id":"b81a58824ffbaff14bb1231b59d01a9a","fullName":"dev.multistack.app.config.CorsConfigTest.apiCorsAllowsSameHostOrigin","name":"admits the deployment host when Origin matches the request Host","status":"passed","testResultsByEnv":{"default":"bd13628b9236f4c384f62f92c7752f03"}}

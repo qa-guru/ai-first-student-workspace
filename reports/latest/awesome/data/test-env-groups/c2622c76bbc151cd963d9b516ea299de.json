@@ -1,1 +1,0 @@
-{"id":"c2622c76bbc151cd963d9b516ea299de","fullName":"dev.multistack.app.controller.NoteControllerTest.deleteMissingNote","name":"DELETE /api/note without a resource returns 404","status":"passed","testResultsByEnv":{"default":"9df7b17054c7cdc65b1f32a767c908c8"}}

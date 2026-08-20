@@ -1,1 +1,0 @@
-{"id":"77c2943bbe4c9d742d64393ebe27e9c9","fullName":"dev.multistack.app.controller.NoteControllerTest.patchMissingNote","name":"PATCH /api/note without a resource returns 404","status":"passed","testResultsByEnv":{"default":"181bd7b0e0f874dca8ee7de4800614cc"}}

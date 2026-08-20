@@ -1,1 +1,0 @@
-{"id":"dcfbfac683d7720da14ddf8920ab39b8","fullName":"dev.multistack.app.controller.NoteControllerTest.getReturnsNote","name":"GET /api/note returns the singleton","status":"passed","testResultsByEnv":{"default":"119e64bea537680a514f9cb31c000fb7"}}
