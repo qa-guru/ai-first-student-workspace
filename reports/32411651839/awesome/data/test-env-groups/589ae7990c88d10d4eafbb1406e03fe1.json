@@ -1,1 +1,0 @@
-{"id":"589ae7990c88d10d4eafbb1406e03fe1","fullName":"tests.api.AuthApiTests.profileWithBearerToken","name":"GET /api/auth/me returns the profile contract for a bearer token","status":"passed","testResultsByEnv":{"default":"a5ebe7cbfcda68da10b963ab4f293ecf"}}
