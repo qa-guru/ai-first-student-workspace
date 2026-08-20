@@ -1,0 +1,1 @@
+{"id":"46724511a506249ba65c1f9ad00c14b1","fullName":"dev.multistack.app.integration.NoteLifecycleIntegrationTest.noteLifecycleRoundTrip","name":"PUT 201/200 → GET → PATCH merge-patch → DELETE 204; another JWT is 404","status":"passed","testResultsByEnv":{"default":"378e60ba43e8ba91362445af01a11b61"}}

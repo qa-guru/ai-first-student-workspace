@@ -1,1 +1,0 @@
-{"id":"2f505f500d80271f61747060d354016d","fullName":"tests.testinfra.LocalChromePinTest.applyRejectsBlankBrowserVersion","name":"apply refuses to fall back to system Chrome","status":"passed","testResultsByEnv":{"default":"118cac9f8575cf0a7c1b6d673323c73f"}}
