@@ -1,0 +1,1 @@
+{"id":"048b14f9f6dc93ffbf03ff62a9da76a4","fullName":"frontend-typescript-react:src/test/lib/note.test.ts#note client deleteNote sends DELETE and resolves on 204","name":"deleteNote sends DELETE and resolves on 204","status":"passed","testResultsByEnv":{"default":"0b74630e0db440203d648faa67e22a59"}}

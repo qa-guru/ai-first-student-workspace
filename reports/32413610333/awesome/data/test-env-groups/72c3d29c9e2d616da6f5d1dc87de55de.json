@@ -1,1 +1,0 @@
-{"id":"72c3d29c9e2d616da6f5d1dc87de55de","fullName":"dev.multistack.app.controller.NoteControllerTest.putRejectsBlankText","name":"PUT /api/note rejects missing text with 400","status":"passed","testResultsByEnv":{"default":"d874eeead1e8440bbdec94d5d7207ecd"}}
