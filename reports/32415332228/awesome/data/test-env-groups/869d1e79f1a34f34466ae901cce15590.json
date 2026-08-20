@@ -1,0 +1,1 @@
+{"id":"869d1e79f1a34f34466ae901cce15590","fullName":"tests.e2e.SessionTests.invalidTokenClearsSession","name":"Invalid token clears session and hides welcome","status":"passed","testResultsByEnv":{"default":"0b4aa40460d2f7f50314606574896f2c"}}
