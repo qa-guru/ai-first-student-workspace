@@ -1,1 +1,0 @@
-{"id":"43232bc699397f55550c933a58b1372b","fullName":"dev.multistack.app.controller.NoteControllerTest.putRejectsUnreadableBody","name":"PUT /api/note rejects unreadable JSON with 400","status":"passed","testResultsByEnv":{"default":"671cd6e50647dcb2af480d35513fcd13"}}

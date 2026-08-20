@@ -1,1 +1,0 @@
-{"id":"3ec5b0d063c9208919964102aa252433","fullName":"tests.testinfra.ConfigReaderTest.resolveWebBaseUrlStripsTrailingSlashFromLoadedConfig","name":"resolveWebBaseUrl strips trailing slash from loaded config","status":"passed","testResultsByEnv":{"default":"dbd051064a41d362030ab6c041d051ce"}}
