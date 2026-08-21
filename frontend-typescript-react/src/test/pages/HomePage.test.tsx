@@ -290,13 +290,13 @@ describe('HomePage', () => {
       localStorage.setItem('authToken', 'valid-token');
       renderHome();
       expect(await screen.findByTestId('welcome-message')).toHaveTextContent('Welcome, user1!');
-      await waitFor(() => expect(screen.getByTestId('note-panel')).toBeVisible());
+      expect(await screen.findByTestId('note-panel')).toBeVisible();
     }
 
     it('keeps the panel hidden without a session token', async () => {
       renderHome();
 
-      await waitFor(() => expect(screen.getByTestId('item-row')).toBeInTheDocument());
+      expect(await screen.findByTestId('item-row')).toBeInTheDocument();
       expect(screen.getByTestId('note-panel')).not.toBeVisible();
       expect(noteCalls('GET')).toHaveLength(0);
     });
@@ -498,6 +498,50 @@ describe('HomePage', () => {
         expect(screen.getByTestId('note-error')).toHaveTextContent('Note store down'),
       );
       expect(screen.getByTestId('note-error')).toBeVisible();
+    });
+
+    it('does not apply a late GET /api/note after unmount', async () => {
+      localStorage.setItem('authToken', 'valid-token');
+      let resolveNote!: (value: Response) => void;
+      const notePromise = new Promise<Response>((resolve) => {
+        resolveNote = resolve;
+      });
+      stubDefaultApis((url, init) => {
+        if (url.includes('/api/note') && noteMethod(init) === 'GET') {
+          return notePromise;
+        }
+        return null;
+      });
+
+      const { unmount } = renderHome();
+      expect(await screen.findByTestId('welcome-message')).toHaveTextContent('Welcome, user1!');
+      unmount();
+      resolveNote(jsonResponse({ id: 7, title: 'Late', text: 'Should not apply' }));
+      await Promise.resolve();
+
+      expect(screen.queryByTestId('note-title-input')).not.toBeInTheDocument();
+    });
+
+    it('does not set welcome after unmount when profile arrives late', async () => {
+      localStorage.setItem('authToken', 'valid-token');
+      let resolveProfile!: (value: Response) => void;
+      const profilePromise = new Promise<Response>((resolve) => {
+        resolveProfile = resolve;
+      });
+      stubDefaultApis((url, init) => {
+        if (url.includes('/api/auth/me') && init?.method !== 'DELETE') {
+          return profilePromise;
+        }
+        return null;
+      });
+
+      const { unmount } = renderHome();
+      expect(await screen.findByTestId('item-row')).toBeInTheDocument();
+      unmount();
+      resolveProfile(jsonResponse({ username: 'late-user' }));
+      await Promise.resolve();
+
+      expect(screen.queryByTestId('welcome-message')).not.toBeInTheDocument();
     });
   });
 });
