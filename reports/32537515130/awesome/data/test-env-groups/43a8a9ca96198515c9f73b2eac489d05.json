@@ -1,1 +1,0 @@
-{"id":"43a8a9ca96198515c9f73b2eac489d05","fullName":"dev.multistack.app.repository.NoteRepositoryTest.findByUserEmptyWhenMissing","name":"findByUser is empty when the user has no note","status":"passed","testResultsByEnv":{"default":"a80ec3265133616ff824dfb2fc1056e4"}}
