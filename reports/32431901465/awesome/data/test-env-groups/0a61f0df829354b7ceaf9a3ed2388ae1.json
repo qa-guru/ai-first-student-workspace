@@ -1,1 +1,0 @@
-{"id":"0a61f0df829354b7ceaf9a3ed2388ae1","fullName":"tests.testinfra.AllureHttpHtmlTest.sanitizerStripsStyleAndScriptThenDarkThemeInjectsIntoHead","name":"sanitizerStripsStyleAndScriptThenDarkThemeInjectsIntoHead()","status":"passed","testResultsByEnv":{"default":"bc991b4c0abb2b3d2cc9b9119f38aa6e"}}

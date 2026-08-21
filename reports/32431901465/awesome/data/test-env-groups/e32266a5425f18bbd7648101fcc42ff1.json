@@ -1,1 +1,0 @@
-{"id":"e32266a5425f18bbd7648101fcc42ff1","fullName":"dev.multistack.app.config.CorsConfigTest.sameHostUsesHostHeader","name":"sameHost matches Origin host to the Host header","status":"passed","testResultsByEnv":{"default":"a1df1b5bff7445c38dbce0f04c966476"}}
