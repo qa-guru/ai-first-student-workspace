@@ -1,1 +1,0 @@
-{"id":"222718db1a79b490fab01013e6dc8055","fullName":"tests.api.NoteApiTests.postIsNotAllowedOnSingleton","name":"POST /api/note is not a create verb (no 201, no 409)","status":"passed","testResultsByEnv":{"default":"41368aa1cc0d1f6ef0bd1a9b8807d964"}}

@@ -1,1 +1,0 @@
-{"id":"4d13a0e3b51e05b2c4f57591f9630ae4","fullName":"tests.api.NoteApiTests.patchTextNullReturns422","name":"PATCH /api/note with text null returns 422","status":"passed","testResultsByEnv":{"default":"284b1a71011bea3fc697b58325c081df"}}
