@@ -47,12 +47,10 @@
       <section class="panel panel--bad">
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">− Rule · нет ПДД на каждый чат</p></div>
         <div class="panel__body">
-          <pre class="pre--sm">Тело теста уже похоже на канон.
-В том же чате:
-  ./gradlew test                   // full suite, 01
-  git commit -am "login"           // 02-git-safety
-  open("http://localhost:9821")    // 03-env
-  «и screenshot, и 401»            // 04-one-task</pre>
+          <pre class="pre--sm">Тело уже канон. В том же чате:
+  ./gradlew test     // full suite
+  git commit         // без OK
+  localhost · «ещё api и 401»</pre>
         </div>
       </section>
       <section class="panel panel--bad">
@@ -71,14 +69,10 @@ $(".alert").shouldHave(text("Invalid credentials"));
       <section class="panel panel--bad">
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">− ADR · спор снова открыт</p></div>
         <div class="panel__body">
-          <pre class="pre--sm">UI-ошибка написана верно, плюс:
-  open("/login"); fill; submit;
-  $("pre").shouldHave(text("401"));  // нет такого UI
-
-  @Layer("screenshot")               // ломает пирамиду
-  class LoginScreenshotTests { … }
-
-«на всякий ещё e2e на JSON»</pre>
+          <pre class="pre--sm">UI-ошибка ок. Плюс:
+  $("pre") «401»          // нет такого UI
+  @Layer("screenshot")    // ломает пирамиду
+  «на всякий e2e на JSON»</pre>
         </div>
       </section>
     </div>

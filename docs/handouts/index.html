@@ -13,7 +13,7 @@
   <p>Листы A4 курса AI-first QA. Кликни строку — лист ниже на этой же странице.</p>
 
   <h2 class="sec">По одной на слой + общая</h2>
-  <a class="sheet-link" href="#00-overview"><b>00 · Общая карта</b><span>четыре вопроса · чайник = автотест на логин · quiz</span></a>
+  <a class="sheet-link" href="#00-overview"><b>00 · Общая карта</b><span>четыре вопроса · чайник = прогон e2e · quiz</span></a>
   <a class="sheet-link" href="#01-skills"><b>01 · Skill</b><span>маршрутный лист · пак · глагол+объект</span></a>
   <a class="sheet-link" href="#02-rules"><b>02 · Rule</b><span>ПДД · пять файлов takeaway</span></a>
   <a class="sheet-link" href="#03-rag"><b>03 · RAG</b><span>2–4 карточки · диета · кофемашина</span></a>
@@ -102,7 +102,7 @@ ADR   → электрический, не самовар: скорость &gt;
         </div>
       </section>
       <section class="panel">
-        <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">автотест на логин · e2e slice</p></div>
+        <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">прогон e2e slice</p></div>
         <div class="panel__body">
           <pre>Вы: «Прогони e2e»
         ↓
@@ -188,8 +188,8 @@ ADR   → screenshot — slice, не @Layer  (005)</pre>
               <h2 class="sec">Промпт</h2>
               <p class="prompt">Rules ON. Прочитай docs/agent-skills/qa-write-test/SKILL.md
 и чанки po-fluent, po-step, test-negative, cfg-stands.
-Добавь e2e по образцу LoginTests#shouldShowErrorWhenPasswordIsWrong.
-Укажи pipeline/stage/prod. Не коммить.</p>
+Добавь автотест на неуспешный логин с неправильным паролем.
+Укажи pipeline/stage/prod.</p>
             </div>
           </div>
         </div>
@@ -509,7 +509,7 @@ RAG: id чанков, которые держат «как», не «почем�
   <p class="lead">Дальше четыре листа: <strong>что агент пишет без слоя и что — с ним</strong>. Сценарий один. В takeaway канон уже лежит, не выдумываем. Живой опыт с двумя вкладками и абляцией — листы <strong>30–35</strong>.</p>
 
   <div class="body">
-    <p class="prompt">Покрой неверный пароль на логине. Не коммить.</p>
+    <p class="prompt">Добавь автотест на неуспешный логин с неправильным паролем</p>
 
     <div class="grid-2" style="display:grid;gap:8px">
       <section class="panel">
@@ -640,7 +640,7 @@ cd tests-java-gradle-junit5-allure3-selenide
   </div>
 
   <footer class="ft">
-    <span>Промпт со skill: «Rules ON. Прочитай qa-write-test/SKILL.md»</span>
+    <span>Сценарий — промпт с листа 20. Skill включают фразой «прочитай SKILL.md»</span>
     <span>Канон: <code>LoginTests#shouldShowErrorWhenPasswordIsWrong</code></span>
     <span>пример · skill</span>
   </footer>
@@ -771,10 +771,7 @@ test-negative один текст, @Tag("negative")
 cfg-stands    URL из config; user1 есть на
               pipeline / stage / prod
               (wrong password сид не сносит)
-
-ci-gradle-args
-  ./gradlew test -Denv=ci -DincludeTags=e2e \
-    -Dtest=LoginTests#shouldShowErrorWhenPasswordIsWrong</pre>
+ci-gradle-args  task testE2e нет; tags + -Denv</pre>
         </div>
       </section>
     </div>
@@ -945,7 +942,7 @@ Configuration.baseUrl = ConfigReader.resolveWebBaseUrl();
       </section>
     </div>
 
-    <div class="dont"><b>Перед live</b>Закомментируй <code>shouldShowErrorWhenPasswordIsWrong</code> — в takeaway метод уже лежит. Иначе skill честно скажет «не дублируй». Промпт на каждом листе 30–35 <strong>один и тот же</strong>.</div>
+    <div class="dont"><b>Перед live</b>Закомментируй <code>shouldShowErrorWhenPasswordIsWrong</code> — в takeaway метод уже лежит. Иначе skill честно скажет «не дублируй». Промпт на 31–35 <strong>тот же</strong> (жёлтая плашка только здесь). «Не коммить» в чат не писать — это Rule.</div>
   </div>
 
   <footer class="ft">
@@ -1017,25 +1014,25 @@ exit code 0 · нет commit</pre>
     <div class="grid-4" style="display:grid;gap:8px">
       <section class="card card--skill">
         <div class="card__label"><span class="card__name">Skill</span><span class="card__q">как</span></div>
-        <p><code>qa-write-test</code>: один <code>@Layer</code> → расширить <code>LoginTests</code> / PO → <code>-Dtest=</code> → DoD. Не CSS в <code>*Tests</code>, не <code>ChromeDriver</code>.</p>
+        <p>Один <code>@Layer</code> → PO → <code>-Dtest=</code> → DoD.</p>
       </section>
       <section class="card card--rule">
         <div class="card__label"><span class="card__name">Rule</span><span class="card__q">нельзя</span></div>
-        <p>Не full suite. Всегда <code>-Denv=</code>. URL не в Java. Не commit. Этот task = этот метод, не «ещё api и screenshot».</p>
+        <p>Не suite, не commit, всегда <code>-Denv</code>, один метод.</p>
       </section>
       <section class="card card--rag">
         <div class="card__label"><span class="card__name">RAG</span><span class="card__q">факт</span></div>
-        <p><code>test-negative</code> + <code>po-fluent</code>: error-path методы, текст <code>Wrong login or password</code>, <code>data-testid</code> уже в PO. <code>cfg-stands</code>.</p>
+        <p><code>test-negative</code> · fluent error-path · <code>cfg-stands</code>.</p>
       </section>
       <section class="card card--adr">
         <div class="card__label"><span class="card__name">ADR</span><span class="card__q">почему</span></div>
-        <p>UI-ошибка = e2e. JSON 401 = api. Screenshot = slice, не <code>@Layer</code>. Нет task <code>testE2e</code> (005).</p>
+        <p>UI = e2e · 401 = api · screenshot = slice.</p>
       </section>
     </div>
   </div>
 
   <footer class="ft">
-    <span>Промпт со стеком: «Rules ON. Прочитай qa-write-test/SKILL.md и чанки po-fluent, test-negative, cfg-stands»</span>
+    <span>Промпт с листа 30 · SKILL.md в чат не копировать — слои сами</span>
     <span>живой опыт · 2/6</span>
   </footer>
 </article>
@@ -1080,12 +1077,10 @@ exit code 0 · нет commit</pre>
       <section class="panel panel--bad">
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">− Rule · нет ПДД на каждый чат</p></div>
         <div class="panel__body">
-          <pre class="pre--sm">Тело теста уже похоже на канон.
-В том же чате:
-  ./gradlew test                   // full suite, 01
-  git commit -am "login"           // 02-git-safety
-  open("http://localhost:9821")    // 03-env
-  «и screenshot, и 401»            // 04-one-task</pre>
+          <pre class="pre--sm">Тело уже канон. В том же чате:
+  ./gradlew test     // full suite
+  git commit         // без OK
+  localhost · «ещё api и 401»</pre>
         </div>
       </section>
       <section class="panel panel--bad">
@@ -1104,14 +1099,10 @@ $(".alert").shouldHave(text("Invalid credentials"));
       <section class="panel panel--bad">
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">− ADR · спор снова открыт</p></div>
         <div class="panel__body">
-          <pre class="pre--sm">UI-ошибка написана верно, плюс:
-  open("/login"); fill; submit;
-  $("pre").shouldHave(text("401"));  // нет такого UI
-
-  @Layer("screenshot")               // ломает пирамиду
-  class LoginScreenshotTests { … }
-
-«на всякий ещё e2e на JSON»</pre>
+          <pre class="pre--sm">UI-ошибка ок. Плюс:
+  $("pre") «401»          // нет такого UI
+  @Layer("screenshot")    // ломает пирамиду
+  «на всякий e2e на JSON»</pre>
         </div>
       </section>
     </div>
@@ -1271,17 +1262,9 @@ $(".alert").shouldHave(text("Invalid credentials"));
       <section class="panel panel--bad">
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">0 слоёв · вкладки открыты</p></div>
         <div class="panel__body">
-          <pre class="pre--sm">@Test
-void testWrongPassword() {
-  WebDriver d = new ChromeDriver();
-  d.get("http://localhost:9821/login");
-  d.findElement(By.cssSelector("input")).sendKeys("user1");
-  d.findElement(By.cssSelector("input[type=password]"))
-      .sendKeys("wrong");
-  d.findElement(By.cssSelector("button")).click();
-  assertEquals("Invalid credentials",
-      d.findElement(By.className("err")).getText());
-}
+          <pre class="pre--sm">как лист 21 слева, плюс учебный интернет:
+  ChromeDriver · localhost:9821 · CSS input
+  assertEquals("Invalid credentials", …)
 ./gradlew test
 git commit -am "add login test"</pre>
         </div>
@@ -1433,7 +1416,7 @@ DoD   → чай в чашке
           </div>
         </section>
         <section class="panel">
-          <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">автотест на логин · qa-smoke-debug</p></div>
+          <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">прогон e2e slice · qa-smoke-debug</p></div>
           <div class="panel__body">
             <pre>1. App UP (:8800 / UI :9821)
 2. Gradle slice → exit code
@@ -1509,7 +1492,7 @@ SKILL (по запросу)
       </section>
       <div class="grid-2" style="display:grid;gap:8px">
         <div class="do"><b>Чайник</b>Не включать пустой. Вода → кнопка → чашка. Ещё не знаем, что кнопка слева на 4 этаже.</div>
-        <div class="do"><b>Автотест на логин</b>Команда канона из rule. Workflow из <code>qa-smoke-debug</code>. Ещё нет чанков PO и стендов — их допишет занятие 3.</div>
+        <div class="do"><b>Прогон e2e</b>Команда канона из rule. Workflow из <code>qa-smoke-debug</code>. Ещё нет чанков PO и стендов — их допишет занятие 3.</div>
       </div>
       <p class="prompt">Rules включены. Прочитай docs/agent-skills/qa-smoke-debug/SKILL.md.
 E2e slice. Не коммить.</p>
@@ -1576,7 +1559,7 @@ RAG   po-fluent · po-step · test-negative · cfg-stands</pre>
           <p>Кнопка <strong>слева</strong> на 4 этаже. Кипяток ≈ 100 °C. Без RAG приносят чайник с другой кухни.</p>
         </section>
         <section class="card card--rag">
-          <div class="card__label"><span class="card__name">Автотест на логин</span></div>
+          <div class="card__label"><span class="card__name">e2e логина</span></div>
           <p>Селекторы в PO, не в <code>*Tests</code>. Тест едет на pipeline / stage / prod — URL из properties. CI: глагол в skill, раннер в <code>ci-github-actions</code> / <code>ci-jenkins</code>.</p>
         </section>
       </div>

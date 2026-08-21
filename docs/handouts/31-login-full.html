@@ -69,25 +69,25 @@ exit code 0 · нет commit</pre>
     <div class="grid-4" style="display:grid;gap:8px">
       <section class="card card--skill">
         <div class="card__label"><span class="card__name">Skill</span><span class="card__q">как</span></div>
-        <p><code>qa-write-test</code>: один <code>@Layer</code> → расширить <code>LoginTests</code> / PO → <code>-Dtest=</code> → DoD. Не CSS в <code>*Tests</code>, не <code>ChromeDriver</code>.</p>
+        <p>Один <code>@Layer</code> → PO → <code>-Dtest=</code> → DoD.</p>
       </section>
       <section class="card card--rule">
         <div class="card__label"><span class="card__name">Rule</span><span class="card__q">нельзя</span></div>
-        <p>Не full suite. Всегда <code>-Denv=</code>. URL не в Java. Не commit. Этот task = этот метод, не «ещё api и screenshot».</p>
+        <p>Не suite, не commit, всегда <code>-Denv</code>, один метод.</p>
       </section>
       <section class="card card--rag">
         <div class="card__label"><span class="card__name">RAG</span><span class="card__q">факт</span></div>
-        <p><code>test-negative</code> + <code>po-fluent</code>: error-path методы, текст <code>Wrong login or password</code>, <code>data-testid</code> уже в PO. <code>cfg-stands</code>.</p>
+        <p><code>test-negative</code> · fluent error-path · <code>cfg-stands</code>.</p>
       </section>
       <section class="card card--adr">
         <div class="card__label"><span class="card__name">ADR</span><span class="card__q">почему</span></div>
-        <p>UI-ошибка = e2e. JSON 401 = api. Screenshot = slice, не <code>@Layer</code>. Нет task <code>testE2e</code> (005).</p>
+        <p>UI = e2e · 401 = api · screenshot = slice.</p>
       </section>
     </div>
   </div>
 
   <footer class="ft">
-    <span>Промпт со стеком: «Rules ON. Прочитай qa-write-test/SKILL.md и чанки po-fluent, test-negative, cfg-stands»</span>
+    <span>Промпт с листа 30 · SKILL.md в чат не копировать — слои сами</span>
     <span>живой опыт · 2/6</span>
   </footer>
 </article>

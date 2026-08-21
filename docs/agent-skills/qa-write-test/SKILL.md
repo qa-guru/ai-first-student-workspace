@@ -66,6 +66,6 @@ cd tests-java-gradle-junit5-allure3-selenide
 ```text
 Rules ON. Прочитай docs/agent-skills/qa-write-test/SKILL.md
 и чанки po-fluent, po-step, test-negative, cfg-stands.
-Добавь e2e по образцу LoginTests#shouldShowErrorWhenPasswordIsWrong
-(не дублируй существующий метод). Укажи pipeline/stage/prod. Не коммить.
+Добавь автотест на неуспешный логин с неправильным паролем.
+Укажи pipeline/stage/prod.
 ```
