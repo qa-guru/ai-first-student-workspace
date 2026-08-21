@@ -68,17 +68,9 @@
       <section class="panel panel--bad">
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">0 слоёв · вкладки открыты</p></div>
         <div class="panel__body">
-          <pre class="pre--sm">@Test
-void testWrongPassword() {
-  WebDriver d = new ChromeDriver();
-  d.get("http://localhost:9821/login");
-  d.findElement(By.cssSelector("input")).sendKeys("user1");
-  d.findElement(By.cssSelector("input[type=password]"))
-      .sendKeys("wrong");
-  d.findElement(By.cssSelector("button")).click();
-  assertEquals("Invalid credentials",
-      d.findElement(By.className("err")).getText());
-}
+          <pre class="pre--sm">как лист 21 слева, плюс учебный интернет:
+  ChromeDriver · localhost:9821 · CSS input
+  assertEquals("Invalid credentials", …)
 ./gradlew test
 git commit -am "add login test"</pre>
         </div>

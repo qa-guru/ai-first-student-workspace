@@ -59,10 +59,7 @@ test-negative один текст, @Tag("negative")
 cfg-stands    URL из config; user1 есть на
               pipeline / stage / prod
               (wrong password сид не сносит)
-
-ci-gradle-args
-  ./gradlew test -Denv=ci -DincludeTags=e2e \
-    -Dtest=LoginTests#shouldShowErrorWhenPasswordIsWrong</pre>
+ci-gradle-args  task testE2e нет; tags + -Denv</pre>
         </div>
       </section>
     </div>
