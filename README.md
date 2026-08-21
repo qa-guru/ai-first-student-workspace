@@ -4,7 +4,7 @@
 
 Продукт (не тесты): skills `be-add-resource` / `fe-add-ui` — [PACK.md](docs/agent-skills/PACK.md).
 
-Листы Rule · Skill · RAG · ADR: [docs/handouts/](docs/handouts/) ([HTML](docs/handouts/index.html)).  
+Листы Rule · Skill · RAG · ADR: [docs/handouts/](docs/handouts/) · live: [qa-guru.github.io/…/docs/handouts/](https://qa-guru.github.io/ai-first-student-workspace/docs/handouts/index.html).  
 Домашка двумя запросами: [HOMEWORK.md](HOMEWORK.md) — ДЗ-1 `main` (стенд + e2e), ДЗ-2 `develop` (note + план пирамиды). Сначала **Fork**. Лист: [40](docs/handouts/index.html#40-homework).
 
 ```bash

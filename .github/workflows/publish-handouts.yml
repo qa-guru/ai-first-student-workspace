@@ -1,0 +1,38 @@
+name: publish-handouts
+
+# Fast GitHub Pages update for course sheets (does not wait on Allure CI).
+# Allure deploy (keep_files: false) must copy the same payload — see ci.yml.
+
+on:
+  push:
+    branches: [main, master, develop]
+    paths:
+      - docs/handouts/**
+      - docs/github-pages/**
+      - .github/workflows/publish-handouts.yml
+  workflow_dispatch:
+
+jobs:
+  pages:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Stage Pages payload
+        run: |
+          mkdir -p pages/docs
+          cp -R docs/handouts pages/docs/handouts
+          cp docs/github-pages/index.html pages/index.html
+          touch pages/.nojekyll
+
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: pages
+          enable_jekyll: false
+          keep_files: true

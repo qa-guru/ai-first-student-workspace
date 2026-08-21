@@ -875,6 +875,9 @@ jobs:
             cp "${{ env.TESTS_DIR }}/history.jsonl" pages/history.jsonl
           fi
           echo "${REPORT_ID}" > pages/latest-run-id.txt
+          mkdir -p pages/docs
+          cp -R docs/handouts pages/docs/handouts
+          cp docs/github-pages/index.html pages/index.html
           touch pages/.nojekyll
 
       - name: Deploy Allure report to GitHub Pages
@@ -908,6 +911,8 @@ jobs:
               echo "- Allure report artifact: allure-report-ci"
             fi
             if [ "${PAGES_OUTCOME}" = "success" ]; then
+              echo "- [GitHub Pages](${GH_PAGES_BASE}/)"
+              echo "- [Handouts](${GH_PAGES_BASE}/docs/handouts/index.html)"
               echo "- [Allure report](${GH_PAGES_BASE}/reports/latest/awesome/index.html)"
             elif [ "${{ github.event_name }}" != "pull_request" ]; then
               echo "- GitHub Pages not deployed"
