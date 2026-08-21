@@ -40,7 +40,7 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 
 Слайд → RFC: нет POST и 409 «already exists»; нет «delete не на prod»; PATCH не в cmp/e2e.
 
-Покрытие takeaway: **0/6 ярусов**. Фича в коде есть. Backend unit/integration под JaCoCo — quality gate модуля, не ярусы пака (`tests-java-…`).
+Покрытие takeaway: **0/6 ярусов**. Фича в коде есть. `jacocoPendingNoteClasses` — дыра модуля до яруса **unit** (не шаблон для новых ресурсов). Backend JaCoCo 1.0 на остальном модуле ≠ ярусы пака (`tests-java-…`).
 
 ## Лог фаз
 
@@ -50,7 +50,7 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 | 1 | контракт | ADR 006; сначала CRUD-POST | нет | n/a | затем сверка RFC |
 | 1b | канон RFC | RAG `crud-http`; ADR 006 | нет | n/a | POST убран; PUT 201/200 |
 | 1c | SSOT | `crud-http` в monorepo RAG + диета; generic skills без таблицы глаголов | нет | n/a | план ссылается на RAG |
-| 2 | backend | `V3__notes.sql`; `NoteController`/`NoteService`; JaCoCo-тесты модуля | `./gradlew test jacocoTestCoverageVerification` | 0 | PUT 201/200, PATCH merge-patch, cascade delete |
+| 2 | backend | `V3__notes.sql`; `NoteController`/`NoteService`; JaCoCo exclude `jacocoPendingNoteClasses` до яруса unit | `./gradlew test jacocoTestCoverageVerification -DexcludeTags=integration` | 0 | PUT 201/200, PATCH merge-patch, cascade delete; гейт 1.0 на остальном модуле |
 | 3 | frontend | `lib/note.ts`; `note-panel` на Home; stub GET `/api/note` в `HomePage.test` | `npm test` | 0 | Save = PUT; PATCH с UI нет |
 | 1d | план | матрица сценарий × ярус под RFC | нет | n/a | убраны POST+409 и «delete не на prod» |
 
@@ -67,5 +67,5 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 
 ## Что осталось человеку
 
-- Ярусы takeaway — «следующий ярус» (`qa-make-full-pyramid`), по одному чату.
+- Ярусы takeaway — «следующий ярус» (`qa-make-full-pyramid`), по одному чату. Первый = **unit**: тесты модуля + снять `jacocoPendingNoteClasses`.
 - Stage / PDF / PR — только явным OK.

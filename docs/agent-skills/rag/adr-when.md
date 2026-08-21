@@ -32,7 +32,8 @@ RAG: id чанков, которые держат «как», не «почем�
 ```
 
 Канон курса: `docs/adr/005-screenshot-not-layer.md` — screenshot не `@Layer`.  
-Факты контракта фичи — RAG (пример: `crud-http`); почему takeaway — синглтон/RFC — учебный ADR пака 006, **не** monorepo `docs/adr/006-allurerc-mjs-ethalon.md`.
+Факты контракта фичи — RAG (пример: `crud-http`); почему takeaway — синглтон/RFC — учебный ADR пака 006, **не** monorepo `docs/adr/006-allurerc-mjs-ethalon.md`.  
+Продукт: 007 Spring API-only; 008 DS header не форк. Слои/testid — RAG `be-spring-layers` / `fe-ds-contract`.
 
 ## Don't
 

@@ -3,7 +3,7 @@ id: quality-gates
 domain: testing
 adr: 005
 tags: [jacoco, sonar, coverage, pyramid]
-related: [test-pyramid]
+related: [test-pyramid, be-module-tests]
 ---
 # JaCoCo / Sonar ≠ пирамида
 
@@ -21,6 +21,8 @@ related: [test-pyramid]
 
 E2e/Selenide **не** кормит JaCoCo живого Spring. «100% e2e» строками — бессмыслица.
 
+`jacocoPendingNoteClasses` в `backend-java-spring/build.gradle` — дыра занятия (заметка без unit), не шаблон. Не расширять. Снимать на ярусе **unit** (`qa-make-full-pyramid`). Зелёный гейт с непустым списком ≠ «модуль покрыт». Фронт: не понижать пол в `vitest.config.ts`; stub fetch ≠ покрытие сценария.
+
 ## Do
 
 - Backend unit: оставить (или довести) `jacocoTestCoverageVerification`.
@@ -31,5 +33,6 @@ E2e/Selenide **не** кормит JaCoCo живого Spring. «100% e2e» ст
 ## Don't
 
 - Требовать 100% line на фронте в первом гейте.
+- Расширять JaCoCo exclude под новую фичу; понижать `minimum = 1.0`.
 - Включать `SONAR_REQUIRED=true` до зелёного QG на дашборде.
 - Класть токен в workflow-файл или в чат.

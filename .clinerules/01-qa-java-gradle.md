@@ -1,9 +1,6 @@
 ---
 paths:
-  - "**/*Tests.java"
-  - "**/*Test.java"
-  - "**/tests/**"
-  - "**/build.gradle"
+  - "tests-java-gradle-junit5-allure3-selenide/**"
 ---
 
 # takeaway — e2e / api defaults
@@ -40,6 +37,10 @@ cd tests-java-gradle-junit5-allure3-selenide
 
 - Results: `tests-java-gradle-junit5-allure3-selenide/build/allure-results`
 - Report: `npx allure serve build/allure-results` (из модуля тестов, после `npm ci`)
+
+## Новый продукт без яруса
+
+Эндпоинт / панель в коде, а в этом модуле нет api и/или e2e по слоту — в ответе **Дыра**. Не закрывать unit/JaCoCo отсюда. Не e2e вместо api. Пирамида — `qa-make-full-pyramid`, один ярус.
 
 ## Skills
 

@@ -1,0 +1,20 @@
+---
+paths:
+  - "backend-java-spring/**"
+---
+
+# backend-java-spring
+
+Модуль — JSON `/api/**`, не UI (ADR `docs/adr/007-backend-api-only.md`).
+
+- Слои: controller тонкий → service → repository. DTO `record`, не entity в теле запроса.
+- Схема: новый Flyway `V{n}__*.sql`. Не править уже применённые миграции.
+- Ошибки: `{"message":"..."}`. CSRF выкл., JWT stateless.
+- Публичный path — явно в `SecurityConfig`; иначе `/api/**` authenticated.
+- HTTP: RAG `crud-http`, не POST+409 на синглтоне.
+- Тесты **этого** модуля (JaCoCo 1.0). Не Selenide в том же task.
+- Новый код без тестов модуля — в ответе **Дыра**, не молчать. Не дописывать классы в `jacocoPendingNoteClasses` (только `/api/note` до яруса unit). Не понижать 1.0.
+- Commit без OK нельзя.
+
+Skill: `docs/agent-skills/be-add-resource/SKILL.md`.  
+RAG: `be-spring-layers`, `be-module-tests`, `crud-http`.
