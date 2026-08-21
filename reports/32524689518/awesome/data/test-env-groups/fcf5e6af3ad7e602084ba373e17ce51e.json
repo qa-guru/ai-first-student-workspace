@@ -1,1 +1,0 @@
-{"id":"fcf5e6af3ad7e602084ba373e17ce51e","fullName":"tests.api.NoteApiTests.getMissingReturns404","name":"GET /api/note returns 404 when the user has no note","status":"passed","testResultsByEnv":{"default":"3dfb8933889a589fb556e25a8a6c680b"}}

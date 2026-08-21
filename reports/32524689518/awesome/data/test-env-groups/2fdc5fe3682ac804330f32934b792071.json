@@ -1,1 +1,0 @@
-{"id":"2fdc5fe3682ac804330f32934b792071","fullName":"dev.multistack.app.service.NoteServiceTest.patchRejectsNonStringTitle","name":"patch rejects a non-string title with 400","status":"passed","testResultsByEnv":{"default":"20ac63dc6bc00c5f2f8a8bf395178aa7"}}
