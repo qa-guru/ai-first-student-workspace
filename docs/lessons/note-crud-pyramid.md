@@ -29,7 +29,7 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 |----------|:----:|:---:|:---:|:---:|:---:|:---:|
 | Пустой `text` → 400 | ✓ PUT `@Valid` | — | — | ✓ схема ошибки | — | — |
 | PUT create persist | ✓ create vs replace, **не 409** | ✓ HTTP+DB **201**, не 409 | — | ✓ **201** + `Content-Location`; POST не 201/409 | — | — |
-| GET 200 / 404 | ✓ маппинг DTO | ✓ GET 200 после persist; GET 404 после delete | ✓ текст / empty | ✓ чужой JWT = свой 404 | ● один happy-path: логин → вижу/создаю (**PUT**) | — |
+| GET 200 / 404 | ✓ маппинг DTO | ✓ GET 200 после persist; GET 404 после delete | ✓ текст / empty | ✓ чужой JWT = свой 404 | ✓ логин → вижу/создаю (**PUT**) | — |
 | Update | ✓ PUT replace; PATCH merge (`title:null`→`""`, `text:null`→**422**, `{}` no-op) | ✓ PUT replace 200; PATCH merge 200 | ✓ форма edit = **PUT**, PATCH нет | ✓ PUT **200**; PATCH **200** / **415** / **422** / 404; `{}` → 200 | — | — |
 | Delete | — | ✓ 204 потом 404 | ✓ empty state | ✓ 204 / 404; фабрика, не `user1` | — | ● exploratory; prod — тот же api, teardown |
 | 401 без токена | — | — (chain `/api/**` уже есть) | — | ✓ GET/PUT/PATCH/DELETE | не дублировать | — |
@@ -40,7 +40,7 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 
 Слайд → RFC: нет POST и 409 «already exists»; нет «delete не на prod»; PATCH не в cmp/e2e.
 
-Покрытие takeaway: **4/6 ярусов** (unit, integration, component, api). `jacocoPendingNoteClasses` снят; backend JaCoCo LINE+BRANCH **1.0** включая `/api/note`. JaCoCo 1.0 ≠ остальные ярусы пака (`tests-java-…`). Vitest coverage выше пола (`lines 92` / `branches 82`) — пол не понижали.
+Покрытие takeaway: **5/6 ярусов** (unit, integration, component, api, e2e). `jacocoPendingNoteClasses` снят; backend JaCoCo LINE+BRANCH **1.0** включая `/api/note`. JaCoCo 1.0 ≠ остальные ярусы пака (`tests-java-…`). Vitest coverage выше пола (`lines 92` / `branches 82`) — пол не понижали.
 
 ## Лог фаз
 
@@ -57,6 +57,7 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 | 5 | integration | `NoteLifecycleIntegrationTest`; HTTP+DB `/api/note`; фабрика, не `user1`; 401 не дублировали | `cd backend-java-spring && ./gradlew test -DincludeTags=integration` | 0 | PUT create 201 persist → GET 200 → PUT replace 200 → PATCH merge 200 → DELETE 204 → GET 404 |
 | 6 | component | `HomePage.test` note-panel: empty GET 404; save **PUT** (не PATCH); delete → empty; текст ошибки в UI | `cd frontend-typescript-react && npm test -- --coverage` | 0 | явный stub GET `/api/note`, не общий 404; testid не трогали; пол Vitest не понижали |
 | 7 | api | `NoteApiTests` + `NoteApiClient`; контракт `crud-http`; фабрика+teardown, не `user1`; нет `if (prod)` | `cd tests-java-gradle-junit5-allure3-selenide && ./gradlew test -Denv=ci -DincludeTags=api -Dtest=NoteApiTests --tests tests.api.NoteApiTests` | 0 | 17 тестов: PUT 201/`Content-Location` и 200 не 409; POST не создаёт; GET 200/404/чужой JWT; PATCH 200/`{}`/415/422/404; DELETE 204/404; 401 без токена; пустой text и лимиты 120/2000 → 400 + схема ошибки |
+| 8 | e2e | `NoteTests` + PO `note-panel` в `HomePage`; fluent login → панель → save (**PUT**); не PATCH/415/401/схема; без `@Tag("smoke")` | `cd tests-java-gradle-junit5-allure3-selenide && ./gradlew test -Denv=ci -DincludeTags=e2e -DexcludeTags=screenshot,mock -Dtest=NoteTests` | 0 | 1 тест: логин `user1` → вижу панель → save PUT (create или replace); Delete enabled; ошибка скрыта |
 
 ## Вывод: зачем skills / rules / RAG / ADR
 
@@ -71,5 +72,5 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 
 ## Что осталось человеку
 
-- Ярусы takeaway — «следующий ярус» (`qa-make-full-pyramid`), по одному чату. Следующий = **e2e** (один happy path: логин → вижу/создаю **PUT**; не все глаголы).
+- Ярусы takeaway — «следующий ярус» (`qa-make-full-pyramid`), по одному чату. Следующий = **manual** (exploratory; prod — фабрика, не сид `user1`).
 - Stage / PDF / PR — только явным OK.
