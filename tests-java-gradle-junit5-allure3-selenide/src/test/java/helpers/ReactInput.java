@@ -5,9 +5,10 @@ import com.codeborne.selenide.SelenideElement;
 import static com.codeborne.selenide.Selenide.executeJavaScript;
 
 /**
- * React 19 controlled {@code <input>} ignores a DOM {@code .value} write without
- * native setter + {@code input}/{@code change} events. Selenide {@code setValue}
- * is enough on a cold document and not enough after hot-pool park + remount.
+ * React 19 controlled {@code <input>}/{@code <textarea>} ignore a DOM {@code .value}
+ * write without native setter + {@code input}/{@code change} events. Selenide
+ * {@code setValue} is enough on a cold document and not enough after hot-pool
+ * park + remount.
  */
 public final class ReactInput {
 
@@ -23,8 +24,10 @@ public final class ReactInput {
                 "const el = document.querySelector('[data-testid=\"' + arguments[0] + '\"]');"
                         + "if (!el) { throw new Error('missing [data-testid=' + arguments[0] + ']'); }"
                         + "const v = arguments[1];"
-                        + "const desc = Object.getOwnPropertyDescriptor("
-                        + "window.HTMLInputElement.prototype, 'value');"
+                        + "const proto = el.tagName === 'TEXTAREA'"
+                        + "  ? window.HTMLTextAreaElement.prototype"
+                        + "  : window.HTMLInputElement.prototype;"
+                        + "const desc = Object.getOwnPropertyDescriptor(proto, 'value');"
                         + "desc.set.call(el, v);"
                         + "el.dispatchEvent(new Event('input', {bubbles: true}));"
                         + "el.dispatchEvent(new Event('change', {bubbles: true}));",

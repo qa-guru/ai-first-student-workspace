@@ -1,7 +1,9 @@
 package pages;
 
 import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.Wait;
@@ -12,7 +14,10 @@ import static pages.PageTimeouts.PAGE_READY;
 
 import api.AuthApiClient;
 import com.codeborne.selenide.SelenideElement;
+import helpers.ReactInput;
 import io.qameta.allure.Step;
+import java.time.Duration;
+import org.openqa.selenium.TimeoutException;
 
 public class HomePage {
 
@@ -33,6 +38,13 @@ public class HomePage {
     private final SelenideElement deleteAccountButton = $("[data-testid='delete-account-button']");
     private final SelenideElement welcomePanel = $("[data-testid='welcome-panel']");
     private final SelenideElement header = $("[data-testid='header']");
+    private final SelenideElement notePanel = $("[data-testid='note-panel']");
+    private final SelenideElement noteForm = $("[data-testid='note-form']");
+    private final SelenideElement noteTitleInput = $("[data-testid='note-title-input']");
+    private final SelenideElement noteInput = $("[data-testid='note-input']");
+    private final SelenideElement noteSaveButton = $("[data-testid='note-save-button']");
+    private final SelenideElement noteDeleteButton = $("[data-testid='note-delete-button']");
+    private final SelenideElement noteError = $("[data-testid='note-error']");
 
     private String authTokenKey() {
         return executeJavaScript(AUTH_TOKEN_KEY_JS);
@@ -211,5 +223,71 @@ public class HomePage {
             return executeJavaScript("return localStorage.getItem(arguments[0]);", key) != null;
         });
         return this;
+    }
+
+    @Step("Verify note panel is visible")
+    public HomePage shouldShowNotePanel() {
+        notePanel.shouldBe(visible, PAGE_READY);
+        noteForm.shouldBe(visible);
+        noteTitleInput.shouldBe(visible);
+        noteInput.shouldBe(visible);
+        noteSaveButton.shouldBe(visible);
+        waitUntilNoteGetSettled();
+        noteError.shouldHave(attribute("hidden"));
+        return this;
+    }
+
+    @Step("Type note title: {title}")
+    public HomePage typeNoteTitle(String title) {
+        noteTitleInput.shouldBe(visible, PAGE_READY);
+        ReactInput.setValue(noteTitleInput, title);
+        noteTitleInput.shouldHave(value(title));
+        return this;
+    }
+
+    @Step("Type note text")
+    public HomePage typeNoteText(String text) {
+        noteInput.shouldBe(visible, PAGE_READY);
+        ReactInput.setValue(noteInput, text);
+        noteInput.shouldHave(value(text));
+        return this;
+    }
+
+    @Step("Save note")
+    public HomePage saveNote() {
+        noteSaveButton.shouldBe(enabled, PAGE_READY).click();
+        return this;
+    }
+
+    @Step("Fill and save note")
+    public HomePage fillAndSaveNote(String title, String text) {
+        typeNoteTitle(title);
+        typeNoteText(text);
+        return saveNote();
+    }
+
+    @Step("Verify note shows title and text: {title}")
+    public HomePage shouldShowNote(String title, String text) {
+        noteTitleInput.shouldHave(value(title), PAGE_READY);
+        noteInput.shouldHave(value(text));
+        noteDeleteButton.shouldBe(enabled);
+        noteError.shouldHave(attribute("hidden"));
+        return this;
+    }
+
+    /**
+     * Profile sets welcome (panel visible) before GET /api/note returns.
+     * Existing note enables Delete; empty 404 leaves it disabled. Wait so a late
+     * GET cannot overwrite the form after typing.
+     */
+    private void waitUntilNoteGetSettled() {
+        try {
+            Wait()
+                    .withTimeout(Duration.ofSeconds(3))
+                    .pollingEvery(Duration.ofMillis(100))
+                    .until(driver -> noteDeleteButton.is(enabled));
+        } catch (TimeoutException ignored) {
+            noteDeleteButton.shouldNotBe(enabled);
+        }
     }
 }
