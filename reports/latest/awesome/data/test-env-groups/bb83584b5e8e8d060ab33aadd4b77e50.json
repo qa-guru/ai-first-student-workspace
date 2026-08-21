@@ -1,1 +1,0 @@
-{"id":"bb83584b5e8e8d060ab33aadd4b77e50","fullName":"tests.api.NoteApiTests.patchEmptyObjectReturns200","name":"PATCH /api/note with {} is a 200 no-op","status":"passed","testResultsByEnv":{"default":"e3c862676fe4d5768fee5b1797658f72"}}
