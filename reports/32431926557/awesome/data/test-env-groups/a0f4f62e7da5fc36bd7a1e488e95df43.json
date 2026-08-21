@@ -1,1 +1,0 @@
-{"id":"a0f4f62e7da5fc36bd7a1e488e95df43","fullName":"tests.testinfra.LocalChromePinTest.configuredBrowserVersionMatchesPin","name":"configured browserVersion stays on the pinned major","status":"passed","testResultsByEnv":{"default":"09fd7a26ac6d2940dba304ae25f7cc5f"}}
