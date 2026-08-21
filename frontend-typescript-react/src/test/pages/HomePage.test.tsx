@@ -50,6 +50,12 @@ function stubDefaultApis(
       if (url.includes('/api/auth/logout')) {
         return Promise.resolve({ ok: true, status: 204, json: async () => ({}) } as Response);
       }
+      if (url.includes('/api/note')) {
+        const method = init?.method ?? 'GET';
+        if (method === 'GET') {
+          return Promise.resolve(jsonResponse({ message: 'Not found' }, false, 404));
+        }
+      }
       if (url.includes('/api/')) {
         return Promise.resolve(jsonResponse({ message: 'Not found' }, false, 404));
       }
@@ -64,6 +70,24 @@ function deleteAccountCalls() {
   return (globalThis.fetch as unknown as FetchMock).mock.calls.filter(
     ([input, init]) => String(input).includes('/api/auth/me') && init?.method === 'DELETE',
   );
+}
+
+function noContentResponse(): Response {
+  return { ok: true, status: 204, json: async () => ({}) } as Response;
+}
+
+function noteMethod(init?: RequestInit): string {
+  return init?.method ?? 'GET';
+}
+
+function noteCalls(method: string) {
+  return (globalThis.fetch as unknown as FetchMock).mock.calls.filter(
+    ([input, init]) => String(input).includes('/api/note') && noteMethod(init) === method,
+  );
+}
+
+function savedNoteResponse(title: string, text: string, status = 201): Response {
+  return jsonResponse({ id: 7, title, text }, true, status);
 }
 
 describe('HomePage', () => {
@@ -259,5 +283,221 @@ describe('HomePage', () => {
     await waitFor(() =>
       expect(screen.getByTestId('items-list')).toHaveTextContent('No items found.'),
     );
+  });
+
+  describe('note-panel', () => {
+    async function renderLoggedInNotePanel() {
+      localStorage.setItem('authToken', 'valid-token');
+      renderHome();
+      expect(await screen.findByTestId('welcome-message')).toHaveTextContent('Welcome, user1!');
+      await waitFor(() => expect(screen.getByTestId('note-panel')).toBeVisible());
+    }
+
+    it('keeps the panel hidden without a session token', async () => {
+      renderHome();
+
+      await waitFor(() => expect(screen.getByTestId('item-row')).toBeInTheDocument());
+      expect(screen.getByTestId('note-panel')).not.toBeVisible();
+      expect(noteCalls('GET')).toHaveLength(0);
+    });
+
+    it('shows empty state when GET /api/note is 404', async () => {
+      await renderLoggedInNotePanel();
+
+      await waitFor(() => expect(noteCalls('GET')).toHaveLength(1));
+      expect(screen.getByTestId('note-form')).toBeInTheDocument();
+      expect(screen.getByTestId('note-title-input')).toHaveValue('');
+      expect(screen.getByTestId('note-input')).toHaveValue('');
+      expect(screen.getByTestId('note-save-button')).toBeEnabled();
+      expect(screen.getByTestId('note-delete-button')).toBeDisabled();
+      expect(screen.getByTestId('note-error')).not.toBeVisible();
+    });
+
+    it('fills the form from GET /api/note 200', async () => {
+      stubDefaultApis((url, init) => {
+        if (url.includes('/api/note') && noteMethod(init) === 'GET') {
+          return jsonResponse({ id: 7, title: 'Ship', text: 'Write the PUT path' });
+        }
+        return null;
+      });
+
+      await renderLoggedInNotePanel();
+
+      await waitFor(() => expect(screen.getByTestId('note-title-input')).toHaveValue('Ship'));
+      expect(screen.getByTestId('note-input')).toHaveValue('Write the PUT path');
+      expect(screen.getByTestId('note-delete-button')).toBeEnabled();
+    });
+
+    it('save sends PUT with JSON, never PATCH', async () => {
+      const user = userEvent.setup();
+      stubDefaultApis((url, init) => {
+        if (url.includes('/api/note') && init?.method === 'PUT') {
+          const body = JSON.parse(String(init.body)) as { title: string; text: string };
+          return savedNoteResponse(body.title, body.text, 201);
+        }
+        return null;
+      });
+
+      await renderLoggedInNotePanel();
+      await user.type(screen.getByTestId('note-title-input'), 'Ship');
+      await user.type(screen.getByTestId('note-input'), 'Write the PUT path');
+      await user.click(screen.getByTestId('note-save-button'));
+
+      await waitFor(() => expect(noteCalls('PUT')).toHaveLength(1));
+      await waitFor(() => expect(screen.getByTestId('note-delete-button')).toBeEnabled());
+      expect(noteCalls('PATCH')).toHaveLength(0);
+      expect(noteCalls('POST')).toHaveLength(0);
+      expect(noteCalls('PUT')[0][1]).toMatchObject({
+        method: 'PUT',
+        headers: {
+          Authorization: 'Bearer valid-token',
+          'Content-Type': 'application/json',
+        },
+      });
+      expect(JSON.parse(String(noteCalls('PUT')[0][1]?.body))).toEqual({
+        title: 'Ship',
+        text: 'Write the PUT path',
+      });
+      expect(screen.getByTestId('note-error')).not.toBeVisible();
+    });
+
+    it('edit of an existing note still sends PUT, not PATCH', async () => {
+      const user = userEvent.setup();
+      stubDefaultApis((url, init) => {
+        const method = noteMethod(init);
+        if (!url.includes('/api/note')) {
+          return null;
+        }
+        if (method === 'GET') {
+          return jsonResponse({ id: 7, title: 'Ship', text: 'Draft' });
+        }
+        if (method === 'PUT') {
+          const body = JSON.parse(String(init?.body)) as { title: string; text: string };
+          return savedNoteResponse(body.title, body.text, 200);
+        }
+        return null;
+      });
+
+      await renderLoggedInNotePanel();
+      await waitFor(() => expect(screen.getByTestId('note-input')).toHaveValue('Draft'));
+      await user.clear(screen.getByTestId('note-input'));
+      await user.type(screen.getByTestId('note-input'), 'Write the PUT path');
+      await user.click(screen.getByTestId('note-save-button'));
+
+      await waitFor(() => expect(noteCalls('PUT')).toHaveLength(1));
+      expect(noteCalls('PATCH')).toHaveLength(0);
+      expect(JSON.parse(String(noteCalls('PUT')[0][1]?.body))).toEqual({
+        title: 'Ship',
+        text: 'Write the PUT path',
+      });
+    });
+
+    it('delete returns the form to empty state', async () => {
+      const user = userEvent.setup();
+      stubDefaultApis((url, init) => {
+        const method = noteMethod(init);
+        if (!url.includes('/api/note')) {
+          return null;
+        }
+        if (method === 'GET') {
+          return jsonResponse({ id: 7, title: 'Ship', text: 'Write the PUT path' });
+        }
+        if (method === 'DELETE') {
+          return noContentResponse();
+        }
+        return null;
+      });
+
+      await renderLoggedInNotePanel();
+      await waitFor(() => expect(screen.getByTestId('note-delete-button')).toBeEnabled());
+      await user.click(screen.getByTestId('note-delete-button'));
+
+      await waitFor(() => expect(noteCalls('DELETE')).toHaveLength(1));
+      expect(noteCalls('DELETE')[0][1]).toMatchObject({
+        method: 'DELETE',
+        headers: { Authorization: 'Bearer valid-token' },
+      });
+      expect(screen.getByTestId('note-title-input')).toHaveValue('');
+      expect(screen.getByTestId('note-input')).toHaveValue('');
+      expect(screen.getByTestId('note-delete-button')).toBeDisabled();
+      expect(screen.getByTestId('note-error')).not.toBeVisible();
+    });
+
+    it('shows required-text error in the panel without sending PUT', async () => {
+      const user = userEvent.setup();
+      await renderLoggedInNotePanel();
+
+      await user.type(screen.getByTestId('note-title-input'), 'Ship');
+      await user.click(screen.getByTestId('note-save-button'));
+
+      await waitFor(() =>
+        expect(screen.getByTestId('note-error')).toHaveTextContent('Text is required'),
+      );
+      expect(screen.getByTestId('note-error')).toBeVisible();
+      expect(noteCalls('PUT')).toHaveLength(0);
+    });
+
+    it('shows the API error text when save fails', async () => {
+      const user = userEvent.setup();
+      stubDefaultApis((url, init) => {
+        if (url.includes('/api/note') && init?.method === 'PUT') {
+          return jsonResponse({ message: 'text: must not be blank' }, false, 400);
+        }
+        return null;
+      });
+
+      await renderLoggedInNotePanel();
+      await user.type(screen.getByTestId('note-input'), 'Write the PUT path');
+      await user.click(screen.getByTestId('note-save-button'));
+
+      await waitFor(() =>
+        expect(screen.getByTestId('note-error')).toHaveTextContent('text: must not be blank'),
+      );
+      expect(screen.getByTestId('note-error')).toBeVisible();
+      expect(screen.getByTestId('note-delete-button')).toBeDisabled();
+    });
+
+    it('shows the API error text when delete fails', async () => {
+      const user = userEvent.setup();
+      stubDefaultApis((url, init) => {
+        const method = noteMethod(init);
+        if (!url.includes('/api/note')) {
+          return null;
+        }
+        if (method === 'GET') {
+          return jsonResponse({ id: 7, title: 'Ship', text: 'Write the PUT path' });
+        }
+        if (method === 'DELETE') {
+          return jsonResponse({ message: 'Note is locked' }, false, 500);
+        }
+        return null;
+      });
+
+      await renderLoggedInNotePanel();
+      await waitFor(() => expect(screen.getByTestId('note-delete-button')).toBeEnabled());
+      await user.click(screen.getByTestId('note-delete-button'));
+
+      await waitFor(() =>
+        expect(screen.getByTestId('note-error')).toHaveTextContent('Note is locked'),
+      );
+      expect(screen.getByTestId('note-title-input')).toHaveValue('Ship');
+      expect(screen.getByTestId('note-delete-button')).toBeEnabled();
+    });
+
+    it('shows the API error text when GET /api/note fails', async () => {
+      stubDefaultApis((url, init) => {
+        if (url.includes('/api/note') && noteMethod(init) === 'GET') {
+          return jsonResponse({ message: 'Note store down' }, false, 500);
+        }
+        return null;
+      });
+
+      await renderLoggedInNotePanel();
+
+      await waitFor(() =>
+        expect(screen.getByTestId('note-error')).toHaveTextContent('Note store down'),
+      );
+      expect(screen.getByTestId('note-error')).toBeVisible();
+    });
   });
 });

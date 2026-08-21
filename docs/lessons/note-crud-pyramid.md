@@ -29,18 +29,18 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 |----------|:----:|:---:|:---:|:---:|:---:|:---:|
 | Пустой `text` → 400 | ✓ PUT `@Valid` | — | — | ● схема ошибки | — | — |
 | PUT create persist | ✓ create vs replace, **не 409** | ✓ HTTP+DB **201**, не 409 | — | ● **201** + `Content-Location` | — | — |
-| GET 200 / 404 | ✓ маппинг DTO | ✓ GET 200 после persist; GET 404 после delete | ● текст / empty | ● (+ чужой JWT = свой 404) | ● один happy-path: логин → вижу/создаю (**PUT**) | — |
-| Update | ✓ PUT replace; PATCH merge (`title:null`→`""`, `text:null`→**422**, `{}` no-op) | ✓ PUT replace 200; PATCH merge 200 | ● форма edit = **PUT**, PATCH нет | ● PUT **200**; PATCH **200** / **415** / **422** / 404 | — | — |
-| Delete | — | ✓ 204 потом 404 | ● empty state | ● 204 / 404; prod — фабрика, не `user1` | — | ● exploratory; prod — тот же api, teardown |
+| GET 200 / 404 | ✓ маппинг DTO | ✓ GET 200 после persist; GET 404 после delete | ✓ текст / empty | ● (+ чужой JWT = свой 404) | ● один happy-path: логин → вижу/создаю (**PUT**) | — |
+| Update | ✓ PUT replace; PATCH merge (`title:null`→`""`, `text:null`→**422**, `{}` no-op) | ✓ PUT replace 200; PATCH merge 200 | ✓ форма edit = **PUT**, PATCH нет | ● PUT **200**; PATCH **200** / **415** / **422** / 404 | — | — |
+| Delete | — | ✓ 204 потом 404 | ✓ empty state | ● 204 / 404; prod — фабрика, не `user1` | — | ● exploratory; prod — тот же api, teardown |
 | 401 без токена | — | — (chain `/api/**` уже есть) | — | ● | не дублировать | — |
-| Текст ошибки в UI | — | — | ● | — | только если api не ловит UX | — |
+| Текст ошибки в UI | — | — | ✓ | — | только если api не ловит UX | — |
 | Длинный текст / XSS / гонки | ✓ лимиты 120/2000 | — | — | лимиты 120/2000 → 400 | — | ● XSS, гонки (PUT идемпотентен, не 409) |
 
 Стенды: unit/cmp — n/a; int — pipeline; api — pipeline / stage / prod (delete с фабрикой); e2e — pipeline / stage, prod только `e2e & smoke`; man — не сид `user1`.
 
 Слайд → RFC: нет POST и 409 «already exists»; нет «delete не на prod»; PATCH не в cmp/e2e.
 
-Покрытие takeaway: **2/6 ярусов** (unit, integration). `jacocoPendingNoteClasses` снят; backend JaCoCo LINE+BRANCH **1.0** включая `/api/note`. JaCoCo 1.0 ≠ остальные ярусы пака (`tests-java-…`).
+Покрытие takeaway: **3/6 ярусов** (unit, integration, component). `jacocoPendingNoteClasses` снят; backend JaCoCo LINE+BRANCH **1.0** включая `/api/note`. JaCoCo 1.0 ≠ остальные ярусы пака (`tests-java-…`). Vitest coverage выше пола (`lines 92` / `branches 82`) — пол не понижали.
 
 ## Лог фаз
 
@@ -55,6 +55,7 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 | 1d | план | матрица сценарий × ярус под RFC | нет | n/a | убраны POST+409 и «delete не на prod» |
 | 4 | unit | `NoteServiceTest` + slice `NoteControllerTest` + `NoteRepositoryTest`; снят `jacocoPendingNoteClasses` | `cd backend-java-spring && ./gradlew test jacocoTestReport jacocoTestCoverageVerification -DexcludeTags=integration` | 0 | create vs replace не 409; GET DTO/404; PATCH merge; PUT 201/200/400; PATCH 200/415/422; DELETE 204; persistence entity/repo; гейт 1.0 |
 | 5 | integration | `NoteLifecycleIntegrationTest`; HTTP+DB `/api/note`; фабрика, не `user1`; 401 не дублировали | `cd backend-java-spring && ./gradlew test -DincludeTags=integration` | 0 | PUT create 201 persist → GET 200 → PUT replace 200 → PATCH merge 200 → DELETE 204 → GET 404 |
+| 6 | component | `HomePage.test` note-panel: empty GET 404; save **PUT** (не PATCH); delete → empty; текст ошибки в UI | `cd frontend-typescript-react && npm test -- --coverage` | 0 | явный stub GET `/api/note`, не общий 404; testid не трогали; пол Vitest не понижали |
 
 ## Вывод: зачем skills / rules / RAG / ADR
 
@@ -69,5 +70,5 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 
 ## Что осталось человеку
 
-- Ярусы takeaway — «следующий ярус» (`qa-make-full-pyramid`), по одному чату. Следующий = **component** (RTL: empty / save PUT / delete).
+- Ярусы takeaway — «следующий ярус» (`qa-make-full-pyramid`), по одному чату. Следующий = **api** (`NoteApiTests` + клиент; PATCH / 415 здесь, не в e2e).
 - Stage / PDF / PR — только явным OK.
