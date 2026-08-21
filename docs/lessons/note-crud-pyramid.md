@@ -22,25 +22,25 @@ HTTP-глаголы **не дублировать** здесь — SSOT: [`crud-
 ## Таблица: сценарий × ярус
 
 Канон HTTP — [`crud-http`](../agent-skills/rag/crud-http.md), не слайд POST+409.  
-Ячейка: `●` = слот этого яруса (теста takeaway ещё нет); `—` = не сюда.  
+Ячейка: `✓` = тест этого яруса есть; `●` = слот ещё пуст; `—` = не сюда.  
 Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 
 | Сценарий | unit | int | cmp | api | e2e | man |
 |----------|:----:|:---:|:---:|:---:|:---:|:---:|
-| Пустой `text` → 400 | ● | — | — | ● схема ошибки | — | — |
-| PUT create persist | ● create vs replace, **не 409** | ● HTTP+DB | — | ● **201** + `Content-Location` | — | — |
-| GET 200 / 404 | ● маппинг DTO | ● | ● текст / empty | ● (+ чужой JWT = свой 404) | ● один happy-path: логин → вижу/создаю (**PUT**) | — |
-| Update | ● PUT replace; PATCH merge (`title:null`→`""`, `text:null`→**422**, `{}` no-op) | ● | ● форма edit = **PUT**, PATCH нет | ● PUT **200**; PATCH **200** / **415** / **422** / 404 | — | — |
+| Пустой `text` → 400 | ✓ PUT `@Valid` | — | — | ● схема ошибки | — | — |
+| PUT create persist | ✓ create vs replace, **не 409** | ● HTTP+DB | — | ● **201** + `Content-Location` | — | — |
+| GET 200 / 404 | ✓ маппинг DTO | ● | ● текст / empty | ● (+ чужой JWT = свой 404) | ● один happy-path: логин → вижу/создаю (**PUT**) | — |
+| Update | ✓ PUT replace; PATCH merge (`title:null`→`""`, `text:null`→**422**, `{}` no-op) | ● | ● форма edit = **PUT**, PATCH нет | ● PUT **200**; PATCH **200** / **415** / **422** / 404 | — | — |
 | Delete | — | ● 204 потом 404 | ● empty state | ● 204 / 404; prod — фабрика, не `user1` | — | ● exploratory; prod — тот же api, teardown |
 | 401 без токена | — | — (chain `/api/**` уже есть) | — | ● | не дублировать | — |
 | Текст ошибки в UI | — | — | ● | — | только если api не ловит UX | — |
-| Длинный текст / XSS / гонки | — | — | — | лимиты 120/2000 → 400 | — | ● XSS, гонки (PUT идемпотентен, не 409) |
+| Длинный текст / XSS / гонки | ✓ лимиты 120/2000 | — | — | лимиты 120/2000 → 400 | — | ● XSS, гонки (PUT идемпотентен, не 409) |
 
 Стенды: unit/cmp — n/a; int — pipeline; api — pipeline / stage / prod (delete с фабрикой); e2e — pipeline / stage, prod только `e2e & smoke`; man — не сид `user1`.
 
 Слайд → RFC: нет POST и 409 «already exists»; нет «delete не на prod»; PATCH не в cmp/e2e.
 
-Покрытие takeaway: **0/6 ярусов**. Фича в коде есть. `jacocoPendingNoteClasses` — дыра модуля до яруса **unit** (не шаблон для новых ресурсов). Backend JaCoCo 1.0 на остальном модуле ≠ ярусы пака (`tests-java-…`).
+Покрытие takeaway: **1/6 ярусов** (unit). `jacocoPendingNoteClasses` снят; backend JaCoCo LINE+BRANCH **1.0** включая `/api/note`. JaCoCo 1.0 ≠ остальные ярусы пака (`tests-java-…`).
 
 ## Лог фаз
 
@@ -53,6 +53,7 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 | 2 | backend | `V3__notes.sql`; `NoteController`/`NoteService`; JaCoCo exclude `jacocoPendingNoteClasses` до яруса unit | `./gradlew test jacocoTestCoverageVerification -DexcludeTags=integration` | 0 | PUT 201/200, PATCH merge-patch, cascade delete; гейт 1.0 на остальном модуле |
 | 3 | frontend | `lib/note.ts`; `note-panel` на Home; stub GET `/api/note` в `HomePage.test` | `npm test` | 0 | Save = PUT; PATCH с UI нет |
 | 1d | план | матрица сценарий × ярус под RFC | нет | n/a | убраны POST+409 и «delete не на prod» |
+| 4 | unit | `NoteServiceTest` + slice `NoteControllerTest` + `NoteRepositoryTest`; снят `jacocoPendingNoteClasses` | `cd backend-java-spring && ./gradlew test jacocoTestReport jacocoTestCoverageVerification -DexcludeTags=integration` | 0 | create vs replace не 409; GET DTO/404; PATCH merge; PUT 201/200/400; PATCH 200/415/422; DELETE 204; persistence entity/repo; гейт 1.0 |
 
 ## Вывод: зачем skills / rules / RAG / ADR
 
@@ -67,5 +68,5 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 
 ## Что осталось человеку
 
-- Ярусы takeaway — «следующий ярус» (`qa-make-full-pyramid`), по одному чату. Первый = **unit**: тесты модуля + снять `jacocoPendingNoteClasses`.
+- Ярусы takeaway — «следующий ярус» (`qa-make-full-pyramid`), по одному чату. Следующий = **integration** (HTTP+DB заметки).
 - Stage / PDF / PR — только явным OK.
