@@ -1,0 +1,1 @@
+{"id":"e188dadbe9d0bfd1d6fd9076d663321b","fullName":"tests.api.NoteApiTests.patchJsonReturns415WithAcceptPatch","name":"PATCH /api/note with application/json returns 415 and Accept-Patch","status":"passed","testResultsByEnv":{"default":"e649cacd0617c69b559a32ab1c3f52d1"}}
