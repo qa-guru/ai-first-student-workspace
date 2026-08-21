@@ -1,1 +1,0 @@
-{"id":"6da1acd87639f18281a9561a16dd4c6d","fullName":"tests.testinfra.ConfigReaderTest.resolveBaseUrlFromBasePath","name":"resolveBaseUrl maps basePath to file URL with trailing slash","status":"passed","testResultsByEnv":{"default":"17f9b55189a46c94fa40b6eb5ac9f306"}}
