@@ -22,4 +22,4 @@ cd tests-java-gradle-junit5-allure3-selenide
 
 ## Workflow
 
-См. `docs/agent-skills/` (`qa-smoke-debug`, `qa-write-test`, `qa-homework-check`, …) и RAG `docs/agent-skills/rag/`.
+См. `docs/agent-skills/` (`qa-smoke-debug`, `qa-write-test`, `qa-make-full-pyramid`, `qa-homework-check`, …) и RAG `docs/agent-skills/rag/` (HTTP CRUD: `crud-http`).

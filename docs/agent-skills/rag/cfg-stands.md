@@ -26,7 +26,7 @@ related: [cfg-env-profile, cfg-base-url, remote-selenoid, ci-gradle-args]
 
 1. **URL и хаб** — только properties / `-DbaseUrl` / `-DremoteUrl`. Запрет: `localhost`, `autotests.ai`, пароль хаба в Java.
 2. **Данные** — сиды вроде `user1` / `password1` должны существовать на **каждом** стенде, где тест поедет. Уникальный email на prod — фабрика + teardown или не гонять этот кейс на prod.
-3. **Разрушение** — delete/drop/admin на prod **нельзя**, пока нет явного OK и отдельного `@Tag`. Pipeline/stage — можно, если стенд пересоздаётся.
+3. **Разрушение** — сиды стенда (`user1`) на prod не сносить. Delete/drop/admin на prod по умолчанию **нельзя**. Исключение: **принятый ADR фичи** разрешает тот же тест на всех стендах через **фабрику + teardown** (не сид); факты — RAG фичи, не `if (prod)`. Pipeline/stage — можно, если стенд пересоздаётся.
 4. **Какой срез куда** — pipeline: api + e2e slice. Prod: узкий smoke (тот же `@Tag("e2e")`, не новый класс «ProdLoginTests»). Stage: как prod, плюс то, что нельзя на бою.
 5. **Браузер** — ci локально Chrome; stage/prod обычно Selenoid (`remote-selenoid`). Тест не знает, local это или remote.
 

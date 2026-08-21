@@ -38,6 +38,7 @@ Retrieval-единицы **для учебного репо студента**. 
 | `hw-check-voice` | [hw-check-voice.md](hw-check-voice.md) | тон комментария к сдаче |
 | `remote-selenoid` | [remote-selenoid.md](remote-selenoid.md) | браузер на хабе |
 | `test-api-layer` | [test-api-layer.md](test-api-layer.md) | Rest Assured, не Selenide |
+| `crud-http` | [crud-http.md](crud-http.md) | HTTP CRUD: PUT 201/200, PATCH merge-patch; POST только на коллекции (SSOT: monorepo `docs/rag/testing/crud-http.md`) |
 | `base-lifecycle` | [base-lifecycle.md](base-lifecycle.md) | `TestBase` setup/teardown |
 
 Занятие 2: явный путь к файлу. Занятие 3: зачем 2–4 чанка, не вся папка. Занятие 4: ADR.

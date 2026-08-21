@@ -3,6 +3,7 @@
 import '../vendor/frontend-javascript-app/css/tokens.css';
 import '../vendor/frontend-javascript-app/css/link.css';
 import '../vendor/frontend-javascript-app/css/input.css';
+import '../vendor/frontend-javascript-app/css/textarea.css';
 import '../vendor/frontend-javascript-app/css/icon.css';
 import '../vendor/frontend-javascript-app/css/icon-btn.css';
 import '../vendor/frontend-javascript-app/css/lang-toggle.css';

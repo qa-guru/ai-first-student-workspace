@@ -33,9 +33,11 @@
 | `qa-setup-host` | DNS / nginx / TLS | 3 · опц. | [example](examples/multistack/qa-setup-host/SKILL.md) |
 | `qa-coverage-audit` | оцени покрытие | 4 | [example](examples/multistack/qa-coverage-audit/SKILL.md) |
 | `qa-pyramid-plan` | план + один ярус | 4 | [example](examples/multistack/qa-pyramid-plan/SKILL.md) |
+| `qa-make-full-pyramid` | ярус за ярусом, уже влитая фича | 4 | [example](examples/multistack/qa-make-full-pyramid/SKILL.md) |
 | `qa-bootstrap-framework` | фреймворк с чеклиста | позже | [example](examples/multistack/qa-bootstrap-framework/SKILL.md) |
 
 CI: глагол в skill (`review`/`create`/`fix`/`run`/`stop`), раннер в RAG (`ci-github-actions` / `ci-jenkins`). `qa-run-ci` ≠ `qa-run-stand`.  
+`qa-make-full-pyramid` ≠ `qa-pyramid-plan` (план + одна дыра) и ≠ `qa-write-test` (один автотест): один вызов = один ярус уже влитой фичи, потом STOP. Контракт фичи — RAG (HTTP CRUD: `crud-http`), не таблица в generic skill.  
 Не skill: TMS (`test-taxonomy` / `tms-meta`), JaCoCo/Sonar (`quality-gates`). Хост ≠ stand.
 
 ## Rules (example)
@@ -58,4 +60,4 @@ cd tests-java-gradle-junit5-allure3-selenide
 Gradle-task `testE2e` **нет**. `@Tag("smoke")` есть на узких методах — **prod slice**, не ярус. На занятии срез = тег `e2e` минус screenshot/mock.
 
 CI: `.github/workflows/ci.yml`. Прод: [https://ai-first.autotests.ai/](https://ai-first.autotests.ai/) (`-Denv=prod`), не матрица `/stack/…`.  
-ADR курса (takeaway `docs/adr/`): [adr/005-screenshot-not-layer.md](adr/005-screenshot-not-layer.md). Не путать с monorepo `docs/adr/005-testing-pyramid-review.md`. Проверяльщик школы (преподаватель): monorepo ADR 014 + skill `qa-homework-check`.
+ADR курса (takeaway `docs/adr/`): [adr/005-screenshot-not-layer.md](adr/005-screenshot-not-layer.md), [adr/006-one-note-not-list.md](adr/006-one-note-not-list.md) (HTTP — RAG [`crud-http`](rag/crud-http.md), SSOT monorepo `docs/rag/testing/crud-http.md`). Не путать с monorepo `docs/adr/005-testing-pyramid-review.md` / `006-allurerc-mjs-ethalon.md`. Проверяльщик школы (преподаватель): monorepo ADR 014 + skill `qa-homework-check`.

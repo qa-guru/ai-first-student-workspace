@@ -31,7 +31,8 @@ ADR пишут, когда решение **дорого откатывать**:
 RAG: id чанков, которые держат «как», не «почему».
 ```
 
-Канон курса: `docs/adr/005-screenshot-not-layer.md` — screenshot не `@Layer`.
+Канон курса: `docs/adr/005-screenshot-not-layer.md` — screenshot не `@Layer`.  
+Факты контракта фичи — RAG (пример: `crud-http`); почему takeaway — синглтон/RFC — учебный ADR пака 006, **не** monorepo `docs/adr/006-allurerc-mjs-ethalon.md`.
 
 ## Don't
 

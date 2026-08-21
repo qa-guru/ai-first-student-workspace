@@ -19,7 +19,7 @@ RAG (прочитай до кода): `po-fluent`, `po-locators`, `po-step`, `te
 - Новый `ChromeDriver` / setup в тесте
 - E2e на JSON-контракт, если место в `tests/api`
 - `localhost` / prod URL / пароль хаба в Java
-- Деструктивный сценарий без пометки «только pipeline/stage»
+- Деструктивный сценарий на prod без OK / без ADR фичи с фабрикой (`cfg-stands`)
 - Commit без OK
 
 ## Якоря
@@ -33,7 +33,7 @@ RAG (прочитай до кода): `po-fluent`, `po-locators`, `po-step`, `te
 ## Steps
 
 1. Выбери **один** `@Layer` (чанк `test-layers`). Сомнения api vs e2e — api, если нет UI-состояния.
-2. **Стенды (чанк `cfg-stands`):** этот тест поедет на pipeline (`ci`), stage (`stage`) и/или prod (`prod`)? Данные (сиды) есть на всех? На prod нельзя delete без OK. URL только из config.
+2. **Стенды (чанк `cfg-stands`):** этот тест поедет на pipeline (`ci`), stage (`stage`) и/или prod (`prod`)? Данные (сиды) есть на всех? Сиды на prod не сносить. Фабрика+teardown на prod — только если ADR фичи. URL только из config. Контракт новой фичи — её RAG, не этот skill.
 3. Есть PO/клиент? Расширь его. Нет — создай локаторы в `pages/`, не в тесте.
 4. Класс: `@Layer`, `@Epic`, `@Feature`, `@DisplayName`. Метод: `@Tag` яруса + `positive`/`negative`.
 5. Прогон только этого теста на **pipeline-профиле** (локальный compose):

@@ -18,7 +18,7 @@ paths:
 - Любой прогон — с `-Denv=`. URL не хардкодить в тестах.
 - Перед ci: `docker compose up -d --build`. Health: `curl -sf http://localhost:8800/api/health`. UI: `http://localhost:9821/` (не `:9811`).
 - Prod без рабочего `-DremoteUrl` — не гонять.
-- На prod: не деструктивные сценарии (delete/drop) без явного OK.
+- На prod: сиды (`user1`) не сносить. Delete/drop по умолчанию нельзя; фабрика+teardown — только если ADR фичи (`cfg-stands`).
 - «Зелёный только на localhost» ≠ готово к merge.
 - Не удалять `build/allure-results` без OK.
 
