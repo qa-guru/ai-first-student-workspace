@@ -26,6 +26,18 @@ curl -sf http://localhost:8800/api/health
 # UI container only:          http://localhost:9811/
 ```
 
+| Method | Path | Что |
+|--------|------|-----|
+| GET | `/api/health` | liveness |
+| GET | `/api/openapi.yaml` | контракт (байты `_contract/openapi.yaml`) |
+| GET | `/api/docs` | Swagger UI на ту yaml |
+
+```bash
+curl -sf http://localhost:8800/api/openapi.yaml >/dev/null
+# Swagger UI: http://localhost:8800/api/docs
+# same-origin: http://localhost:9821/api/docs
+```
+
 Tests (gateway already up):
 
 ```bash
