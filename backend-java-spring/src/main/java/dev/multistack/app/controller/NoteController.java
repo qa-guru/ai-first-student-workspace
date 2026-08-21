@@ -6,6 +6,7 @@ import dev.multistack.app.dto.NotePutRequest;
 import dev.multistack.app.dto.NotePutResult;
 import dev.multistack.app.exception.NoteException;
 import dev.multistack.app.service.NoteService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -69,20 +70,36 @@ public class NoteController {
         noteService.delete(username);
         return ResponseEntity.noContent().build();
     }
-}
-
-@RestControllerAdvice
-class NoteExceptionHandler {
 
     @ExceptionHandler(NoteException.class)
     ResponseEntity<Map<String, String>> handleNoteException(NoteException ex) {
         return ResponseEntity.status(ex.getStatus()).body(Map.of("message", ex.getMessage()));
     }
+}
+
+/**
+ * 415 is resolved before the controller method ({@code Handler Type = null}), so it cannot
+ * live as {@code assignableTypes = NoteController} or a local {@code @ExceptionHandler}.
+ * Gate by URI so neighbouring resources do not inherit {@code Accept-Patch}.
+ */
+@RestControllerAdvice
+class NoteMediaTypeExceptionHandler {
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    ResponseEntity<Map<String, String>> handleUnsupportedMediaType() {
-        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                .header(HttpHeaders.ACCEPT_PATCH, NoteController.MERGE_PATCH)
-                .body(Map.of("message", "Unsupported media type"));
+    ResponseEntity<Map<String, String>> handleUnsupportedMediaType(HttpServletRequest request) {
+        if (!isNotePath(request)) {
+            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).build();
+        }
+        var body = Map.of("message", "Unsupported media type");
+        if ("PATCH".equalsIgnoreCase(request.getMethod())) {
+            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                    .header(HttpHeaders.ACCEPT_PATCH, NoteController.MERGE_PATCH)
+                    .body(body);
+        }
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(body);
+    }
+
+    private static boolean isNotePath(HttpServletRequest request) {
+        return String.valueOf(request.getRequestURI()).endsWith("/api/note");
     }
 }

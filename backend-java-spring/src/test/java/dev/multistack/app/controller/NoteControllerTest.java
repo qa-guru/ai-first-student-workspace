@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Feature("NoteController")
 @Severity(SeverityLevel.CRITICAL)
 @WebMvcTest(controllers = NoteController.class)
-@Import({NoteExceptionHandler.class, AuthExceptionHandler.class, SecurityConfig.class, CorsConfig.class})
+@Import({NoteMediaTypeExceptionHandler.class, AuthExceptionHandler.class, SecurityConfig.class, CorsConfig.class})
 @DisplayName("NoteController")
 class NoteControllerTest extends SliceTestBase {
 
@@ -150,6 +150,18 @@ class NoteControllerTest extends SliceTestBase {
                         .content("{}"))
                 .andExpect(status().isUnsupportedMediaType())
                 .andExpect(header().string(HttpHeaders.ACCEPT_PATCH, MERGE_PATCH))
+                .andExpect(jsonPath("$.message").value("Unsupported media type"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/note with a non-JSON type is 415 without Accept-Patch")
+    void putUnsupportedMediaTypeDoesNotSetAcceptPatch() throws Exception {
+        mockMvc.perform(put("/api/note")
+                        .with(authentication(user()))
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content("nope"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(header().doesNotExist(HttpHeaders.ACCEPT_PATCH))
                 .andExpect(jsonPath("$.message").value("Unsupported media type"));
     }
 

@@ -22,7 +22,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.SimpleTransactionStatus;
 
 import java.util.Optional;
 
@@ -59,7 +64,7 @@ class NoteServiceTest extends UnitTestBase {
         ReflectionTestUtils.setField(user, "id", 7L);
         note = new NoteEntity(user, "Old title", "Old text");
         ReflectionTestUtils.setField(note, "id", 1L);
-        service = new NoteService(userRepository, noteRepository);
+        service = new NoteService(userRepository, noteRepository, passthroughTransactions());
     }
 
     @Test
@@ -67,7 +72,7 @@ class NoteServiceTest extends UnitTestBase {
     void putCreatesWhenMissing() {
         givenUser();
         when(noteRepository.findByUser(user)).thenReturn(Optional.empty());
-        givenSaveAssignsId();
+        givenCreateAssignsId();
 
         NotePutResult result = service.put(USERNAME, new NotePutRequest("Hello", "World"));
 
@@ -90,6 +95,41 @@ class NoteServiceTest extends UnitTestBase {
         assertEquals("New title", result.note().title());
         assertEquals("New text", result.note().text());
         verify(noteRepository).save(note);
+    }
+
+    @Test
+    @DisplayName("put recovers a unique user_id race as replace 200, not 500")
+    void putCreateRaceBecomesReplace() {
+        givenUser();
+        when(noteRepository.findByUser(user))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(note));
+        when(noteRepository.saveAndFlush(any(NoteEntity.class)))
+                .thenThrow(new DataIntegrityViolationException("notes_user_id_key"));
+        when(noteRepository.save(note)).thenReturn(note);
+
+        NotePutResult result = service.put(USERNAME, new NotePutRequest("Hello", "World"));
+
+        assertFalse(result.created());
+        assertEquals("Hello", result.note().title());
+        assertEquals("World", result.note().text());
+        verify(noteRepository).save(note);
+    }
+
+    @Test
+    @DisplayName("put rethrows unique violation when the competing row is still missing")
+    void putCreateRaceWithoutRowRethrows() {
+        givenUser();
+        when(noteRepository.findByUser(user)).thenReturn(Optional.empty());
+        DataIntegrityViolationException constraint =
+                new DataIntegrityViolationException("notes_user_id_key");
+        when(noteRepository.saveAndFlush(any(NoteEntity.class))).thenThrow(constraint);
+
+        DataIntegrityViolationException ex = assertThrows(
+                DataIntegrityViolationException.class,
+                () -> service.put(USERNAME, new NotePutRequest("Hello", "World")));
+
+        assertEquals(constraint, ex);
     }
 
     @Test
@@ -284,14 +324,32 @@ class NoteServiceTest extends UnitTestBase {
         when(noteRepository.findByUser(user)).thenReturn(Optional.of(note));
     }
 
-    private void givenSaveAssignsId() {
-        when(noteRepository.save(any(NoteEntity.class))).thenAnswer(invocation -> {
+    private void givenCreateAssignsId() {
+        when(noteRepository.saveAndFlush(any(NoteEntity.class))).thenAnswer(invocation -> {
             NoteEntity entity = invocation.getArgument(0);
             if (entity.getId() == null) {
                 ReflectionTestUtils.setField(entity, "id", 1L);
             }
             return entity;
         });
+    }
+
+    /** Executes transactional callbacks inline so unit tests do not need a Spring context. */
+    private static PlatformTransactionManager passthroughTransactions() {
+        return new PlatformTransactionManager() {
+            @Override
+            public TransactionStatus getTransaction(TransactionDefinition definition) {
+                return new SimpleTransactionStatus(true);
+            }
+
+            @Override
+            public void commit(TransactionStatus status) {
+            }
+
+            @Override
+            public void rollback(TransactionStatus status) {
+            }
+        };
     }
 
     private static ObjectNode objectNode() {

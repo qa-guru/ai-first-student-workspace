@@ -24,6 +24,7 @@ export function HomePage() {
   const [hasNote, setHasNote] = useState(false);
   const [noteError, setNoteError] = useState('');
   const [noteBusy, setNoteBusy] = useState(false);
+  const [noteReady, setNoteReady] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -75,6 +76,10 @@ export function HomePage() {
           } catch (error) {
             if (active) {
               setNoteError(error instanceof Error ? error.message : NOTE_MESSAGES.errorSaveFailed);
+            }
+          } finally {
+            if (active) {
+              setNoteReady(true);
             }
           }
         })
@@ -179,7 +184,7 @@ export function HomePage() {
       <Panel
         title="Note"
         testId="note-panel"
-        hidden={welcome === null}
+        hidden={welcome === null || !noteReady}
         bodyClassName="multistack__note-body"
       >
         <form

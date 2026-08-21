@@ -10,8 +10,11 @@ import dev.multistack.app.exception.AuthException;
 import dev.multistack.app.exception.NoteException;
 import dev.multistack.app.repository.NoteRepository;
 import dev.multistack.app.repository.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 public class NoteService {
@@ -21,24 +24,48 @@ public class NoteService {
 
     private final UserRepository userRepository;
     private final NoteRepository noteRepository;
+    private final TransactionTemplate tx;
 
-    public NoteService(UserRepository userRepository, NoteRepository noteRepository) {
+    public NoteService(
+            UserRepository userRepository,
+            NoteRepository noteRepository,
+            PlatformTransactionManager transactionManager
+    ) {
         this.userRepository = userRepository;
         this.noteRepository = noteRepository;
+        this.tx = new TransactionTemplate(transactionManager);
     }
 
-    @Transactional
+    /**
+     * Create and replace run in separate transactions so a lost unique race
+     * (two first PUTs) can recover as replace 200 — same idea as
+     * {@code AuthService.register} mapping a unique violation, but PUT stays
+     * idempotent instead of 409.
+     */
     public NotePutResult put(String username, NotePutRequest request) {
         UserEntity user = requireUser(username);
-        return noteRepository.findByUser(user)
-                .map(existing -> {
-                    existing.setTitle(request.title());
-                    existing.setText(request.text());
-                    return new NotePutResult(false, toDto(noteRepository.save(existing)));
-                })
-                .orElseGet(() -> new NotePutResult(
-                        true,
-                        toDto(noteRepository.save(new NoteEntity(user, request.title(), request.text())))));
+        NotePutResult replaced = tx.execute(status -> noteRepository.findByUser(user)
+                .map(existing -> replace(existing, request))
+                .orElse(null));
+        if (replaced != null) {
+            return replaced;
+        }
+        try {
+            return tx.execute(status -> new NotePutResult(
+                    true,
+                    toDto(noteRepository.saveAndFlush(
+                            new NoteEntity(user, request.title(), request.text())))));
+        } catch (DataIntegrityViolationException ex) {
+            return tx.execute(status -> replace(
+                    noteRepository.findByUser(user).orElseThrow(() -> ex),
+                    request));
+        }
+    }
+
+    private NotePutResult replace(NoteEntity existing, NotePutRequest request) {
+        existing.setTitle(request.title());
+        existing.setText(request.text());
+        return new NotePutResult(false, toDto(noteRepository.save(existing)));
     }
 
     @Transactional(readOnly = true)

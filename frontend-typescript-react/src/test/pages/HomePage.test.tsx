@@ -290,7 +290,7 @@ describe('HomePage', () => {
       localStorage.setItem('authToken', 'valid-token');
       renderHome();
       expect(await screen.findByTestId('welcome-message')).toHaveTextContent('Welcome, user1!');
-      expect(await screen.findByTestId('note-panel')).toBeVisible();
+      await waitFor(() => expect(screen.getByTestId('note-panel')).toBeVisible());
     }
 
     it('keeps the panel hidden without a session token', async () => {
@@ -299,6 +299,29 @@ describe('HomePage', () => {
       expect(await screen.findByTestId('item-row')).toBeInTheDocument();
       expect(screen.getByTestId('note-panel')).not.toBeVisible();
       expect(noteCalls('GET')).toHaveLength(0);
+    });
+
+    it('keeps the note panel hidden until GET /api/note settles', async () => {
+      localStorage.setItem('authToken', 'valid-token');
+      let resolveNote!: (value: Response) => void;
+      const notePromise = new Promise<Response>((resolve) => {
+        resolveNote = resolve;
+      });
+      stubDefaultApis((url, init) => {
+        if (url.includes('/api/note') && noteMethod(init) === 'GET') {
+          return notePromise;
+        }
+        return null;
+      });
+
+      renderHome();
+      expect(await screen.findByTestId('welcome-message')).toHaveTextContent('Welcome, user1!');
+      expect(screen.getByTestId('note-panel')).not.toBeVisible();
+
+      resolveNote(jsonResponse({ id: 7, title: 'Ship', text: 'Write the PUT path' }));
+      await waitFor(() => expect(screen.getByTestId('note-panel')).toBeVisible());
+      expect(screen.getByTestId('note-title-input')).toHaveValue('Ship');
+      expect(screen.getByTestId('note-input')).toHaveValue('Write the PUT path');
     });
 
     it('shows empty state when GET /api/note is 404', async () => {
