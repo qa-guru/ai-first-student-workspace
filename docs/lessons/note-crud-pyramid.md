@@ -28,10 +28,10 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 | Сценарий | unit | int | cmp | api | e2e | man |
 |----------|:----:|:---:|:---:|:---:|:---:|:---:|
 | Пустой `text` → 400 | ✓ PUT `@Valid` | — | — | ● схема ошибки | — | — |
-| PUT create persist | ✓ create vs replace, **не 409** | ● HTTP+DB | — | ● **201** + `Content-Location` | — | — |
-| GET 200 / 404 | ✓ маппинг DTO | ● | ● текст / empty | ● (+ чужой JWT = свой 404) | ● один happy-path: логин → вижу/создаю (**PUT**) | — |
-| Update | ✓ PUT replace; PATCH merge (`title:null`→`""`, `text:null`→**422**, `{}` no-op) | ● | ● форма edit = **PUT**, PATCH нет | ● PUT **200**; PATCH **200** / **415** / **422** / 404 | — | — |
-| Delete | — | ● 204 потом 404 | ● empty state | ● 204 / 404; prod — фабрика, не `user1` | — | ● exploratory; prod — тот же api, teardown |
+| PUT create persist | ✓ create vs replace, **не 409** | ✓ HTTP+DB **201**, не 409 | — | ● **201** + `Content-Location` | — | — |
+| GET 200 / 404 | ✓ маппинг DTO | ✓ GET 200 после persist; GET 404 после delete | ● текст / empty | ● (+ чужой JWT = свой 404) | ● один happy-path: логин → вижу/создаю (**PUT**) | — |
+| Update | ✓ PUT replace; PATCH merge (`title:null`→`""`, `text:null`→**422**, `{}` no-op) | ✓ PUT replace 200; PATCH merge 200 | ● форма edit = **PUT**, PATCH нет | ● PUT **200**; PATCH **200** / **415** / **422** / 404 | — | — |
+| Delete | — | ✓ 204 потом 404 | ● empty state | ● 204 / 404; prod — фабрика, не `user1` | — | ● exploratory; prod — тот же api, teardown |
 | 401 без токена | — | — (chain `/api/**` уже есть) | — | ● | не дублировать | — |
 | Текст ошибки в UI | — | — | ● | — | только если api не ловит UX | — |
 | Длинный текст / XSS / гонки | ✓ лимиты 120/2000 | — | — | лимиты 120/2000 → 400 | — | ● XSS, гонки (PUT идемпотентен, не 409) |
@@ -40,7 +40,7 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 
 Слайд → RFC: нет POST и 409 «already exists»; нет «delete не на prod»; PATCH не в cmp/e2e.
 
-Покрытие takeaway: **1/6 ярусов** (unit). `jacocoPendingNoteClasses` снят; backend JaCoCo LINE+BRANCH **1.0** включая `/api/note`. JaCoCo 1.0 ≠ остальные ярусы пака (`tests-java-…`).
+Покрытие takeaway: **2/6 ярусов** (unit, integration). `jacocoPendingNoteClasses` снят; backend JaCoCo LINE+BRANCH **1.0** включая `/api/note`. JaCoCo 1.0 ≠ остальные ярусы пака (`tests-java-…`).
 
 ## Лог фаз
 
@@ -54,6 +54,7 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 | 3 | frontend | `lib/note.ts`; `note-panel` на Home; stub GET `/api/note` в `HomePage.test` | `npm test` | 0 | Save = PUT; PATCH с UI нет |
 | 1d | план | матрица сценарий × ярус под RFC | нет | n/a | убраны POST+409 и «delete не на prod» |
 | 4 | unit | `NoteServiceTest` + slice `NoteControllerTest` + `NoteRepositoryTest`; снят `jacocoPendingNoteClasses` | `cd backend-java-spring && ./gradlew test jacocoTestReport jacocoTestCoverageVerification -DexcludeTags=integration` | 0 | create vs replace не 409; GET DTO/404; PATCH merge; PUT 201/200/400; PATCH 200/415/422; DELETE 204; persistence entity/repo; гейт 1.0 |
+| 5 | integration | `NoteLifecycleIntegrationTest`; HTTP+DB `/api/note`; фабрика, не `user1`; 401 не дублировали | `cd backend-java-spring && ./gradlew test -DincludeTags=integration` | 0 | PUT create 201 persist → GET 200 → PUT replace 200 → PATCH merge 200 → DELETE 204 → GET 404 |
 
 ## Вывод: зачем skills / rules / RAG / ADR
 
@@ -68,5 +69,5 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 
 ## Что осталось человеку
 
-- Ярусы takeaway — «следующий ярус» (`qa-make-full-pyramid`), по одному чату. Следующий = **integration** (HTTP+DB заметки).
+- Ярусы takeaway — «следующий ярус» (`qa-make-full-pyramid`), по одному чату. Следующий = **component** (RTL: empty / save PUT / delete).
 - Stage / PDF / PR — только явным OK.
