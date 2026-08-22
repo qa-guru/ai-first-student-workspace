@@ -1,1 +1,0 @@
-{"id":"081efe0fd274114f8bb1148eb2ce1db7","fullName":"dev.multistack.app.controller.NoteControllerTest.putUnsupportedMediaTypeDoesNotSetAcceptPatch","name":"PUT /api/note with a non-JSON type is 415 without Accept-Patch","status":"passed","testResultsByEnv":{"default":"f5b65650dcaaa63345455dbe7685804a"}}
