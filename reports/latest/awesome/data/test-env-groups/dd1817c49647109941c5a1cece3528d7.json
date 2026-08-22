@@ -1,0 +1,1 @@
+{"id":"dd1817c49647109941c5a1cece3528d7","fullName":"dev.multistack.app.controller.NoteControllerTest.deleteReturnsNoContent","name":"DELETE /api/note returns 204","status":"passed","testResultsByEnv":{"default":"27c42a86cc57fe22fa7525c428d7269c"}}
