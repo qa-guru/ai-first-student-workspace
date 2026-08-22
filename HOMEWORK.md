@@ -51,7 +51,7 @@ curl -sf http://localhost:8800/api/health
 UI: http://localhost:9821/ (не :9811)
 
 4) Учебный e2e (нет task testE2e; @Tag("smoke") — prod slice, не эта команда):
-cd tests-java-gradle-junit5-allure3-selenide
+cd tests/java/tests-java-gradle-junit5-allure3-selenide
 ./gradlew test -Denv=ci -DincludeTags=e2e -DexcludeTags=screenshot,mock
 
 5) ДЗ готово только если все пункты ниже истинны. Иначе статус «не сдано» и что чинить — без commit.
@@ -61,7 +61,7 @@ cd tests-java-gradle-junit5-allure3-selenide
    - UI открывается с gateway :9821
    - Gradle-команда ровно с -Denv=ci и -DincludeTags=e2e -DexcludeTags=screenshot,mock
    - exit code = 0, failed = 0
-   - каталог tests-java-gradle-junit5-allure3-selenide/build/allure-results не пустой
+   - каталог tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results не пустой
    - в git нет нового commit / push
 
 6) В конце ответа — один блок «Сдача ДЗ». Его человек копирует в чат курса. Не эссе, заполни факты:
@@ -73,11 +73,11 @@ cd tests-java-gradle-junit5-allure3-selenide
 - Health: curl -sf http://localhost:8800/api/health → <код/тело>
 - UI: http://localhost:9821/
 - Команда:
-  cd tests-java-gradle-junit5-allure3-selenide
+  cd tests/java/tests-java-gradle-junit5-allure3-selenide
   ./gradlew test -Denv=ci -DincludeTags=e2e -DexcludeTags=screenshot,mock
 - Exit code: <N>
 - Tests: run=<N> failed=<N>
-- Allure results: tests-java-gradle-junit5-allure3-selenide/build/allure-results
+- Allure results: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results
 - Статус: сдано / не сдано
 ```
 

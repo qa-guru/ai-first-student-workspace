@@ -1,20 +1,20 @@
 ---
 name: fe-add-ui
 description: >-
-  Добавить экран или панель в frontend-typescript-react (DS, lib-клиент, data-testid, RTL).
+  Добавить экран или панель в frontend/typescript/frontend-typescript-react (DS, lib-клиент, data-testid, RTL).
   Use when asked to add a React page, Home panel, API client, or frontend feature in this module.
 ---
 
 # Добавь UI в React
 
-Фича **продукта** в `frontend-typescript-react/`. Не заменяет `qa-write-test` (Selenide PO — другой task).
+Фича **продукта** в `frontend/typescript/frontend-typescript-react/`. Не заменяет `qa-write-test` (Selenide PO — другой task).
 
 RAG (прочитай до кода, 2–4): `fe-react-layers`, `fe-ds-contract`, `crud-http`.  
 ADR: `docs/adr/008-frontend-ds-not-fork.md`. Фича-заметка — ещё `docs/adr/006-one-note-not-list.md`.
 
 ## When
 
-- «добавь панель», «экран React», «клиент /api/…», «frontend-typescript-react фича»
+- «добавь панель», «экран React», «клиент /api/…», «frontend/typescript/frontend-typescript-react фича»
 
 ## Do not
 
@@ -43,7 +43,7 @@ ADR: `docs/adr/008-frontend-ds-not-fork.md`. Фича-заметка — ещё 
 2. Клиент в `lib/` (`apiUrl`, Bearer как в `note.ts` / `auth.ts`).
 3. Строки UI — `lib/messages.ts`.
 4. Разметка — компоненты DS (`Panel`, `Button`, `PlaqueField`, …). Header не трогать, кроме пункта nav в `headerConfig.ts`.
-5. Стабильные `data-testid`. Новые — записать в таблицу `frontend-typescript-react/README.md`.
+5. Стабильные `data-testid`. Новые — записать в таблицу `frontend/typescript/frontend-typescript-react/README.md`.
 6. Новый URL — только `routes.tsx` (+ nav при необходимости).
 7. Product CSS — `css/app.css` (или рядом) и import в `src/styles.ts`, не в vendor.
 8. RTL: happy-path + stub `fetch` (как `HomePage.test`). На новую панель — assert сценария (save/empty), не только чтобы fetch не упал. `npm test` (и `typecheck` если менял публичные типы).

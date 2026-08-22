@@ -8,6 +8,8 @@ Workflows для **Cline** (VS Code + Ollama) в учебном Java/Gradle ре
 
 Контракт HTTP CRUD: SSOT `docs/rag/testing/crud-http.md` → диета `rag/crud-http.md`. Generic skills (`qa-write-test`, `be-add-resource`, `fe-add-ui`) таблицу глаголов не держат. Продукт: `be-add-resource` / `fe-add-ui`; пирамида takeaway — `qa-make-full-pyramid` после влитой фичи.
 
+Контракт HTTP CRUD: SSOT `docs/rag/testing/crud-http.md` → диета `rag/crud-http.md`. Generic skills (`qa-write-test`) таблицу глаголов не держат.
+
 ## Структура
 
 ```text

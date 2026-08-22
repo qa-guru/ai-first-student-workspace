@@ -16,9 +16,9 @@ docker compose up -d --build
 
 | Role | Folder |
 |------|--------|
-| Backend | `backend-java-spring/` |
-| Frontend | `frontend-typescript-react/` (`vendor/` — запечённый design-system runtime) |
-| Tests | `tests-java-gradle-junit5-allure3-selenide/` |
+| Backend | `backend/java/backend-java-spring/` |
+| Frontend | `frontend/typescript/frontend-typescript-react/` (`vendor/` — запечённый design-system runtime) |
+| Tests | `tests/java/tests-java-gradle-junit5-allure3-selenide/` |
 
 ```bash
 curl -sf http://localhost:8800/api/health
@@ -41,11 +41,11 @@ curl -sf http://localhost:8800/api/openapi.yaml >/dev/null
 Tests (gateway already up):
 
 ```bash
-cd tests-java-gradle-junit5-allure3-selenide
+cd tests/java/tests-java-gradle-junit5-allure3-selenide
 ./gradlew test -Denv=ci -DincludeTags=e2e -DexcludeTags=screenshot,mock
 ```
 
-CI: `.github/workflows/ci.yml` (SSOT `_ethalon/singlestack_github.yml`).  
+CI: `.github/workflows/ci.yml` (same orchestrator as the clone; stack knobs in `env:`).  
 Prod stand: [https://ai-first.autotests.ai/](https://ai-first.autotests.ai/) (`-Denv=prod`).  
 Stage: [https://stage.ai-first.autotests.ai/](https://stage.ai-first.autotests.ai/) (`-Denv=stage`).
 

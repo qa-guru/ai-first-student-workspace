@@ -22,9 +22,9 @@ Backend / frontend — другие каталоги, не этот `./gradlew`:
 
 | Ярус | Где | Команда (как в CI) |
 |------|-----|---------------------|
-| unit | `backend-java-spring/` | `./gradlew test jacocoTestReport jacocoTestCoverageVerification -DexcludeTags=integration` |
-| integration | `backend-java-spring/` | `./gradlew test -DincludeTags=integration` |
-| component | `frontend-typescript-react/` | `npm test -- --coverage` |
+| unit | `backend/java/backend-java-spring/` | `./gradlew test jacocoTestReport jacocoTestCoverageVerification -DexcludeTags=integration` |
+| integration | `backend/java/backend-java-spring/` | `./gradlew test -DincludeTags=integration` |
+| component | `frontend/typescript/frontend-typescript-react/` | `npm test -- --coverage` |
 
 ## Slice-теги (не ярус)
 

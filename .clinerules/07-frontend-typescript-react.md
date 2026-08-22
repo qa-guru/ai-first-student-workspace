@@ -1,9 +1,9 @@
 ---
 paths:
-  - "frontend-typescript-react/**"
+  - "frontend/typescript/frontend-typescript-react/**"
 ---
 
-# frontend-typescript-react
+# frontend/typescript/frontend-typescript-react
 
 UI из design-system, не форк header (ADR `docs/adr/008-frontend-ds-not-fork.md`).
 

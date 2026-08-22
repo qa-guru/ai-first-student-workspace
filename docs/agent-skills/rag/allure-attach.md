@@ -8,7 +8,7 @@ tags: [allure, screenshot]
 
 **id:** `allure-attach`
 
-Results: `tests-java-gradle-junit5-allure3-selenide/build/allure-results`.  
+Results: `tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results`.  
 Lifecycle: `TestBase` + `allure/Attachments`.
 
 ## Do

@@ -41,7 +41,7 @@ RAG (прочитай до кода): `po-fluent`, `po-locators`, `po-step`, `te
 5. Прогон только этого теста на **pipeline-профиле** (локальный compose):
 
 ```bash
-cd tests-java-gradle-junit5-allure3-selenide
+cd tests/java/tests-java-gradle-junit5-allure3-selenide
 # e2e
 ./gradlew test -Denv=ci -DincludeTags=e2e -Dtest=LoginTests#<method>
 # api

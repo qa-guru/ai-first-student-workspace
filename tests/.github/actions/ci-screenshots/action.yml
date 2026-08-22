@@ -1,0 +1,19 @@
+name: ci-screenshots
+description: Dispatch CI-stand screenshots to the active module (module_dir).
+inputs:
+  module_dir:
+    required: true
+  update_screenshots:
+    required: false
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - id: dir
+      uses: ./.github/actions/resolve-module-dir
+      with:
+        module_dir: ${{ inputs.module_dir }}
+    - uses: ./tests/java/tests-java-gradle-junit5-allure3-selenide/.github/actions/ci-screenshots
+      with:
+        module_dir: ${{ steps.dir.outputs.dir }}
+        update_screenshots: ${{ inputs.update_screenshots }}

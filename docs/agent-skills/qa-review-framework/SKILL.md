@@ -46,5 +46,5 @@ RAG: `e2e-layers`, `base-lifecycle`, `po-locators`, `test-pyramid`, `allure-repo
 ```text
 Прочитай docs/agent-skills/qa-review-framework/SKILL.md
 и чанки e2e-layers, base-lifecycle.
-Ревью модуля tests-java-gradle-junit5-allure3-selenide. Не меняй код.
+Ревью модуля tests/java/tests-java-gradle-junit5-allure3-selenide. Не меняй код.
 ```

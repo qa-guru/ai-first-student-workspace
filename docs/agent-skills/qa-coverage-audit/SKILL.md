@@ -21,7 +21,7 @@ RAG: `test-pyramid`, `test-layers`, `test-taxonomy`, `test-api-layer`, `quality-
 
 ## Steps
 
-1. Inventory: `tests/e2e|api|manual|testinfra` + `backend-java-spring/src/test` + frontend `*.test.tsx`.
+1. Inventory: `tests/e2e|api|manual|testinfra` + `backend/java/backend-java-spring/src/test` + frontend `*.test.tsx`.
 2. Таблица: класс × `@Layer` × `@Tag` × сценарий (DisplayName).
 3. Flows: login / register / logout / home health+items / auth API / **note** (`/api/note`, note-panel).
 4. Сверить `AuthApiTests` vs `LoginTests` — где дубль, где дыра. Есть ли `jacocoPendingNoteClasses` в backend `build.gradle` и RTL-сценарий панели (не stub 404).

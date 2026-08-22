@@ -13,7 +13,7 @@ related: [ci-gradle-args, cfg-stands, test-pyramid]
 
 `-Denv=` в jobs — как в `ci-gradle-args`.
 
-## Jobs (как matrix clone, без Sonar / TestOps)
+## Jobs (как `autotests-ai-multistack-app`, без Sonar / TestOps)
 
 ```
 backend-unit-tests → integration-tests → build-backend

@@ -280,7 +280,7 @@ ADR   → screenshot — slice, не @Layer  (005)</pre>
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">.clinerules/01-qa-java-gradle.md</p></div>
         <div class="panel__body">
           <pre>## E2e slice
-cd tests-java-gradle-junit5-allure3-selenide
+cd tests/java/tests-java-gradle-junit5-allure3-selenide
 ./gradlew test -Denv=ci -DincludeTags=e2e -DexcludeTags=screenshot,mock
 
 ## Запреты
@@ -626,7 +626,7 @@ class LoginTests extends TestBase {
   }
 }
 
-cd tests-java-gradle-junit5-allure3-selenide
+cd tests/java/tests-java-gradle-junit5-allure3-selenide
 ./gradlew test -Denv=ci -DincludeTags=e2e \
   -Dtest=LoginTests#shouldShowErrorWhenPasswordIsWrong
 // слой e2e · стенды ci/stage/prod · exit code · нет commit</pre>
@@ -998,7 +998,7 @@ void shouldShowErrorWhenPasswordIsWrong() {
       <section class="panel panel--good">
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">прогон · ответ агента</p></div>
         <div class="panel__body">
-          <pre>cd tests-java-gradle-junit5-allure3-selenide
+          <pre>cd tests/java/tests-java-gradle-junit5-allure3-selenide
 ./gradlew test -Denv=ci -DincludeTags=e2e \
   -Dtest=LoginTests#shouldShowErrorWhenPasswordIsWrong
 

@@ -1,13 +1,13 @@
 # QA Agent — takeaway Java/Selenide/Allure
 
 - Ответы на **русском**; команды и пути — как в этом репозитории.
-- Модуль тестов: `tests-java-gradle-junit5-allure3-selenide/`.
+- Модуль тестов: `tests/java/tests-java-gradle-junit5-allure3-selenide/`.
 - Продукт: backend `docs/agent-skills/be-add-resource/SKILL.md`; frontend `docs/agent-skills/fe-add-ui/SKILL.md`. Не писать Selenide в том же task.
 
 ## E2e (default «smoke»)
 
 ```bash
-cd tests-java-gradle-junit5-allure3-selenide
+cd tests/java/tests-java-gradle-junit5-allure3-selenide
 ./gradlew test -Denv=ci -DincludeTags=e2e -DexcludeTags=screenshot,mock
 ```
 

@@ -1,0 +1,18 @@
+name: api
+description: Dispatch api to the active module (module_dir).
+inputs:
+  module_dir:
+    required: true
+  stand:
+    required: true
+runs:
+  using: composite
+  steps:
+    - id: dir
+      uses: ./.github/actions/resolve-module-dir
+      with:
+        module_dir: ${{ inputs.module_dir }}
+    - uses: ./tests/java/tests-java-gradle-junit5-allure3-selenide/.github/actions/api
+      with:
+        module_dir: ${{ steps.dir.outputs.dir }}
+        stand: ${{ inputs.stand }}

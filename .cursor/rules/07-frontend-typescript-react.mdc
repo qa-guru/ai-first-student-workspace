@@ -1,10 +1,10 @@
 ---
-description: frontend-typescript-react — DS, lib-клиент, data-testid, не форк header
-globs: "frontend-typescript-react/**"
+description: frontend/typescript/frontend-typescript-react — DS, lib-клиент, data-testid, не форк header
+globs: "frontend/typescript/frontend-typescript-react/**"
 alwaysApply: false
 ---
 
-# frontend-typescript-react
+# frontend/typescript/frontend-typescript-react
 
 UI из design-system, не форк header (ADR `docs/adr/008-frontend-ds-not-fork.md`).
 

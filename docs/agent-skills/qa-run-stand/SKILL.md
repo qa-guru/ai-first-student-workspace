@@ -31,7 +31,7 @@ docker compose up -d --build
 curl -sf http://localhost:8800/api/health
 # UI: http://localhost:9821/
 
-cd tests-java-gradle-junit5-allure3-selenide
+cd tests/java/tests-java-gradle-junit5-allure3-selenide
 ./gradlew test -Denv=ci -DincludeTags=e2e -DexcludeTags=screenshot,mock
 ```
 

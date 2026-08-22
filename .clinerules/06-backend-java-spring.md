@@ -1,9 +1,9 @@
 ---
 paths:
-  - "backend-java-spring/**"
+  - "backend/java/backend-java-spring/**"
 ---
 
-# backend-java-spring
+# backend/java/backend-java-spring
 
 Модуль — JSON `/api/**`, не UI (ADR `docs/adr/007-backend-api-only.md`).
 

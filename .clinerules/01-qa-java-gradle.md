@@ -1,16 +1,16 @@
 ---
 paths:
-  - "tests-java-gradle-junit5-allure3-selenide/**"
+  - "tests/java/tests-java-gradle-junit5-allure3-selenide/**"
 ---
 
 # takeaway — e2e / api defaults
 
-Модуль: `tests-java-gradle-junit5-allure3-selenide/`.
+Модуль: `tests/java/tests-java-gradle-junit5-allure3-selenide/`.
 
 ## E2e (учебный smoke)
 
 ```bash
-cd tests-java-gradle-junit5-allure3-selenide
+cd tests/java/tests-java-gradle-junit5-allure3-selenide
 ./gradlew test -Denv=ci -DincludeTags=e2e -DexcludeTags=screenshot,mock
 ```
 
@@ -35,7 +35,7 @@ cd tests-java-gradle-junit5-allure3-selenide
 
 ## Allure
 
-- Results: `tests-java-gradle-junit5-allure3-selenide/build/allure-results`
+- Results: `tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results`
 - Report: `npx allure serve build/allure-results` (из модуля тестов, после `npm ci`)
 
 ## Новый продукт без яруса

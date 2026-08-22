@@ -1,10 +1,10 @@
 ---
-description: backend-java-spring — JSON API, слои Spring, Flyway, JaCoCo модуля
-globs: "backend-java-spring/**"
+description: backend/java/backend-java-spring — JSON API, слои Spring, Flyway, JaCoCo модуля
+globs: "backend/java/backend-java-spring/**"
 alwaysApply: false
 ---
 
-# backend-java-spring
+# backend/java/backend-java-spring
 
 Модуль — JSON `/api/**`, не UI (ADR `docs/adr/007-backend-api-only.md`).
 

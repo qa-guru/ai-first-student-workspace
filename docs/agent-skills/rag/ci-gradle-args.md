@@ -8,7 +8,7 @@ tags: [gradle, tags, env]
 
 **id:** `ci-gradle-args`
 
-Модуль: `tests-java-gradle-junit5-allure3-selenide/`. Один task `test`. Срез = `-DincludeTags` + `-Denv`.
+Модуль: `tests/java/tests-java-gradle-junit5-allure3-selenide/`. Один task `test`. Срез = `-DincludeTags` + `-Denv`.
 
 ## Стенды
 
@@ -23,7 +23,7 @@ tags: [gradle, tags, env]
 ## Команды
 
 ```bash
-cd tests-java-gradle-junit5-allure3-selenide
+cd tests/java/tests-java-gradle-junit5-allure3-selenide
 
 # e2e на занятии (шире prod-smoke). Task testE2e нет.
 # @Tag("smoke") есть на узких методах — для prod slice, не вместо этой команды.

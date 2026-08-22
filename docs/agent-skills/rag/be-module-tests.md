@@ -5,11 +5,11 @@ adr: 007
 tags: [junit, jacoco, webmvctest, testcontainers]
 related: [quality-gates, test-layers, be-spring-layers]
 ---
-# Тесты модуля backend-java-spring
+# Тесты модуля backend/java/backend-java-spring
 
 **id:** `be-module-tests`
 
-Это **не** пирамида takeaway (`tests-java-gradle-junit5-allure3-selenide`). Гейт модуля: JaCoCo **LINE+BRANCH 1.0** (`quality-gates`).
+Это **не** пирамида takeaway (`tests/java/tests-java-gradle-junit5-allure3-selenide`). Гейт модуля: JaCoCo **LINE+BRANCH 1.0** (`quality-gates`).
 
 Новый код без тестов модуля CI не проходит — **кроме** явного `jacocoPendingNoteClasses` (только `/api/note`, до яруса unit). Пока список не пуст — в ответе **Дыра**. Не расширять под другую фичу. Снимать вместе с тестами модуля (`qa-make-full-pyramid`, ярус unit).
 
@@ -23,7 +23,7 @@ related: [quality-gates, test-layers, be-spring-layers]
 `@WebMvcTest` / `@DataJpaTest` в отчёте — тот же `@Layer("unit")`, suite `slice`, не шестой ярус пирамиды.
 
 ```bash
-cd backend-java-spring
+cd backend/java/backend-java-spring
 ./gradlew test jacocoTestReport jacocoTestCoverageVerification -DexcludeTags=integration
 ./gradlew test -DincludeTags=integration   # нужен Docker
 ./gradlew check                            # unit+integration+JaCoCo

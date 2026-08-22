@@ -1,27 +1,27 @@
 ---
 name: be-add-resource
 description: >-
-  Добавить или изменить HTTP-ресурс в backend-java-spring (Flyway, слои Spring, тесты модуля, JaCoCo).
+  Добавить или изменить HTTP-ресурс в backend/java/backend-java-spring (Flyway, слои Spring, тесты модуля, JaCoCo).
   Use when asked to add a Spring endpoint, entity, REST resource, or backend feature in this module.
 ---
 
 # Добавь ресурс в Spring
 
-Фича **продукта** в `backend-java-spring/`. Не заменяет `qa-write-test` / `qa-make-full-pyramid` (takeaway api/e2e — другой task).
+Фича **продукта** в `backend/java/backend-java-spring/`. Не заменяет `qa-write-test` / `qa-make-full-pyramid` (takeaway api/e2e — другой task).
 
 RAG (прочитай до кода, 2–4): `be-spring-layers`, `crud-http`, `be-module-tests`.  
 ADR модуля: `docs/adr/007-backend-api-only.md`. Если фича уже с решением (заметка) — ещё `docs/adr/006-one-note-not-list.md`.
 
 ## When
 
-- «добавь эндпоинт», «ресурс в Spring», «таблицу + API», «backend-java-spring фича»
+- «добавь эндпоинт», «ресурс в Spring», «таблицу + API», «backend/java/backend-java-spring фича»
 
 ## Do not
 
 - HTML / шаблоны / cookie-session (ADR 007)
 - Править применённые Flyway `V1`/`V2`/`V3`
 - POST+409 на синглтоне; PUT, который не создаёт (`crud-http`)
-- Писать тесты в `tests-java-gradle-junit5-allure3-selenide` в этом вызове
+- Писать тесты в `tests/java/tests-java-gradle-junit5-allure3-selenide` в этом вызове
 - Понижать JaCoCo 1.0. Дописывать чужие классы в `jacocoPendingNoteClasses` (список только для `/api/note` до яруса unit)
 - Молчать, если тестов модуля нет или pending-список не пуст: в ответе **Дыра**
 - Commit без OK
@@ -43,12 +43,12 @@ ADR модуля: `docs/adr/007-backend-api-only.md`. Если фича уже �
 3. Слои по `be-spring-layers`: entity → repository → dto+validation → service → controller. Controller тонкий.
 4. Security: публичный GET/POST — строка в `SecurityConfig`; иначе хватит `/api/**` authenticated.
 5. Ошибки — `{"message":"..."}` (как `NoteException` / `AuthException`).
-6. Строка в таблицу Contract в `backend-java-spring/README.md` (SSOT модуля).
+6. Строка в таблицу Contract в `backend/java/backend-java-spring/README.md` (SSOT модуля).
 7. Тесты модуля по `be-module-tests` (минимум service unit + `@WebMvcTest`; новая таблица — persistence slice).
 8. Прогон:
 
 ```bash
-cd backend-java-spring
+cd backend/java/backend-java-spring
 ./gradlew test jacocoTestReport jacocoTestCoverageVerification -DexcludeTags=integration
 ```
 

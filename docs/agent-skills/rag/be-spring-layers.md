@@ -5,13 +5,13 @@ adr: 007
 tags: [spring, jpa, flyway, rest]
 related: [crud-http, be-module-tests]
 ---
-# Слои backend-java-spring
+# Слои backend/java/backend-java-spring
 
 **id:** `be-spring-layers`
 
 Канон модуля: [Spring layered](https://docs.spring.io/spring-framework/reference/core/beans/introduction.html) + [Spring Data JPA](https://docs.spring.io/spring-data/jpa/reference/) + [Flyway](https://documentation.red-gate.com/fd). Не гексагоналка и не «entity в `@RequestBody`».
 
-Корень: `backend-java-spring/src/main/java/dev/multistack/app/`.
+Корень: `backend/java/backend-java-spring/src/main/java/dev/multistack/app/`.
 
 | Пакет | Назначение |
 |-------|------------|

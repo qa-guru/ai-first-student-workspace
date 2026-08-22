@@ -4,7 +4,7 @@ name: CI
 # SSOT: this file. Runnable copy: takeaway `.github/workflows/ci.yml` (teaching name).
 # Do NOT copy over the matrix clone `autotests-ai-multistack-app/.github/workflows/ci.yml`.
 #
-# Paths are FLAT (takeaway). Nested ethalon / matrix clone keeps the fat orchestrator.
+# Paths are NESTED (same as etalon cells). Service names stay backend-java-spring / frontend-typescript-react.
 #
 # Graph (same job ids as the matrix clone, thin takeaway — no TestOps / Sonar / lanes):
 #   backend-unit-tests → integration-tests → build-backend
@@ -73,14 +73,14 @@ env:
   NODE_VERSION: "26"
   CHROME_FOR_TESTING_VERSION: "148.0.7778.178"
   BACKEND: backend-java-spring
-  BACKEND_DIR: backend-java-spring
+  BACKEND_DIR: backend/java/backend-java-spring
   FRONTEND: frontend-typescript-react
-  FRONTEND_DIR: frontend-typescript-react
-  TESTS: tests-java-gradle-junit5-allure3-selenide
-  TESTS_DIR: tests-java-gradle-junit5-allure3-selenide
-  ALLURE_RESULTS_DIR: tests-java-gradle-junit5-allure3-selenide/build/allure-results
-  ALLURE_REPORT_DIR: tests-java-gradle-junit5-allure3-selenide/build/reports/allure-report/allureReport
-  ALLURE_AWESOME_DIR: tests-java-gradle-junit5-allure3-selenide/build/reports/allure-report/allureReport/awesome
+  FRONTEND_DIR: frontend/typescript/frontend-typescript-react
+  TESTS: tests/java/tests-java-gradle-junit5-allure3-selenide
+  TESTS_DIR: tests/java/tests-java-gradle-junit5-allure3-selenide
+  ALLURE_RESULTS_DIR: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results
+  ALLURE_REPORT_DIR: tests/java/tests-java-gradle-junit5-allure3-selenide/build/reports/allure-report/allureReport
+  ALLURE_AWESOME_DIR: tests/java/tests-java-gradle-junit5-allure3-selenide/build/reports/allure-report/allureReport/awesome
   APP_URL: https://ai-first.autotests.ai/
   STAGE_APP_URL: https://stage.ai-first.autotests.ai/
   APP_HEALTH: https://ai-first.autotests.ai/api/health
@@ -137,7 +137,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: allure-results-unit
-          path: backend-java-spring/build/allure-results/**
+          path: backend/java/backend-java-spring/build/allure-results/**
           if-no-files-found: ignore
           retention-days: 1
 
@@ -174,7 +174,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: frontend-typescript-react/package-lock.json
+          cache-dependency-path: frontend/typescript/frontend-typescript-react/package-lock.json
       - name: Install npm dependencies
         run: npm ci
         working-directory: ${{ env.FRONTEND_DIR }}
@@ -201,7 +201,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: allure-results-component
-          path: frontend-typescript-react/allure-results/**
+          path: frontend/typescript/frontend-typescript-react/allure-results/**
           if-no-files-found: ignore
           retention-days: 1
 
@@ -230,7 +230,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: allure-results-harness
-          path: tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
+          path: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
           if-no-files-found: ignore
           retention-days: 1
 
@@ -318,7 +318,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: allure-results-ui-mock
-          path: tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
+          path: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
           if-no-files-found: ignore
           retention-days: 1
       - name: Publish mock screenshot PNGs
@@ -329,7 +329,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: mock-screenshot-pngs
-          path: tests-java-gradle-junit5-allure3-selenide/src/test/resources/screenshots/
+          path: tests/java/tests-java-gradle-junit5-allure3-selenide/src/test/resources/screenshots/
           if-no-files-found: ignore
 
   # Pipeline goldens live in screenshots/prod/ (ci → prod folder). Linux SSOT for
@@ -380,7 +380,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ci-screenshot-pngs
-          path: tests-java-gradle-junit5-allure3-selenide/src/test/resources/screenshots/
+          path: tests/java/tests-java-gradle-junit5-allure3-selenide/src/test/resources/screenshots/
           if-no-files-found: ignore
 
   build-backend:
@@ -526,7 +526,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: allure-results-api-stage
-          path: tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
+          path: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
           if-no-files-found: ignore
           retention-days: 1
 
@@ -613,7 +613,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: stage-screenshot-pngs
-          path: tests-java-gradle-junit5-allure3-selenide/src/test/resources/screenshots/
+          path: tests/java/tests-java-gradle-junit5-allure3-selenide/src/test/resources/screenshots/
           if-no-files-found: ignore
       - name: Publish raw Allure results
         if: always()
@@ -621,7 +621,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: allure-results-e2e-stage
-          path: tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
+          path: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
           if-no-files-found: ignore
           retention-days: 1
 
@@ -741,7 +741,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: allure-results-api
-          path: tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
+          path: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
           if-no-files-found: ignore
           retention-days: 1
 
@@ -773,7 +773,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: allure-results-e2e
-          path: tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
+          path: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
           if-no-files-found: ignore
           retention-days: 1
 
@@ -812,7 +812,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: tests-java-gradle-junit5-allure3-selenide/package-lock.json
+          cache-dependency-path: tests/java/tests-java-gradle-junit5-allure3-selenide/package-lock.json
 
       - name: package.json pins must match package-lock.json
         working-directory: ${{ env.TESTS_DIR }}

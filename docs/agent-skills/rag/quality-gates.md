@@ -15,13 +15,13 @@ related: [test-pyramid, be-module-tests]
 | Ось | Что меряет | В takeaway сейчас |
 |-----|------------|-------------------|
 | Пирамида | сценарий на верном `@Layer` | таблица `qa-coverage-audit` |
-| JaCoCo | % строк/веток **unit** backend | `backend-java-spring`: LINE+BRANCH **1.0** (CI job `backend-unit-tests`) |
+| JaCoCo | % строк/веток **unit** backend | `backend/java/backend-java-spring`: LINE+BRANCH **1.0** (CI job `backend-unit-tests`) |
 | Vitest coverage | % JS/TS component | job `frontend-unit-tests` (`npm test -- --coverage`) |
 | Sonar QG | bugs / smells / duplications / coverage ingest | школьный [sonar.qa.guru](https://sonar.qa.guru) — **опционально**; в `ci.yml` takeaway **нет** Sonar |
 
 E2e/Selenide **не** кормит JaCoCo живого Spring. «100% e2e» строками — бессмыслица.
 
-`jacocoPendingNoteClasses` в `backend-java-spring/build.gradle` — дыра занятия (заметка без unit), не шаблон. Не расширять. Снимать на ярусе **unit** (`qa-make-full-pyramid`). Зелёный гейт с непустым списком ≠ «модуль покрыт». Фронт: не понижать пол в `vitest.config.ts`; stub fetch ≠ покрытие сценария.
+`jacocoPendingNoteClasses` в `backend/java/backend-java-spring/build.gradle` — дыра занятия (заметка без unit), не шаблон. Не расширять. Снимать на ярусе **unit** (`qa-make-full-pyramid`). Зелёный гейт с непустым списком ≠ «модуль покрыт». Фронт: не понижать пол в `vitest.config.ts`; stub fetch ≠ покрытие сценария.
 
 ## Do
 

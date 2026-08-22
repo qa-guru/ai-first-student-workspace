@@ -5,13 +5,13 @@ adr: 008
 tags: [react, vite, router, rtl]
 related: [fe-ds-contract, crud-http]
 ---
-# Слои frontend-typescript-react
+# Слои frontend/typescript/frontend-typescript-react
 
 **id:** `fe-react-layers`
 
 Канон: Vite + React function components + [data router](https://reactrouter.com/6.30.1/routers/picking-a-router) (тот же `routes` в приложении и в тесте). Не Next.js, не Redux.
 
-Корень: `frontend-typescript-react/src/`.
+Корень: `frontend/typescript/frontend-typescript-react/src/`.
 
 | Путь | Назначение |
 |------|------------|
@@ -28,7 +28,7 @@ API: `apiUrl('/…')` из `lib/appBase.ts`, не `localhost` и не хардк
 Новый route — объект в `routes.tsx` (и пункт nav в `lib/headerConfig.ts`, если экран в меню). Якорь панели на Home: `HomePage` + `lib/note.ts`.
 
 ```bash
-cd frontend-typescript-react
+cd frontend/typescript/frontend-typescript-react
 npm test
 npm run typecheck
 npm run lint

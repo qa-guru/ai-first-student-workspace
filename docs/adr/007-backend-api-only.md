@@ -5,7 +5,7 @@
 
 ## Контекст
 
-Развилка: Thymeleaf/SSR в `backend-java-spring` vs SPA в `frontend-typescript-react`. Смешать HTML и `/api` в одном JAR дёшево на старте и дорого откатывать: CSRF, деплой, Selenide, матрица фронтов.
+Развилка: Thymeleaf/SSR в `backend/java/backend-java-spring` vs SPA в `frontend/typescript/frontend-typescript-react`. Смешать HTML и `/api` в одном JAR дёшево на старте и дорого откатывать: CSRF, деплой, Selenide, матрица фронтов.
 
 ## Решение
 

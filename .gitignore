@@ -6,6 +6,8 @@
 **/allure-results/
 **/bin/
 **/build/
+!**/.github/actions/build/
+!**/.github/actions/build/**
 **/coverage/
 **/dist/
 **/node_modules/

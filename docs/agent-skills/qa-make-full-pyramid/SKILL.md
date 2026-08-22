@@ -52,12 +52,12 @@ description: >-
 
 | `@Layer` | Класс / файл | Прогон яруса |
 |----------|--------------|--------------|
-| unit | `backend-java-spring/…/service/ItemServiceTest.java` | `cd backend-java-spring && ./gradlew test jacocoTestReport jacocoTestCoverageVerification -DexcludeTags=integration` |
-| integration | `backend-java-spring/…/integration/AuthLifecycleIntegrationTest.java` | `cd backend-java-spring && ./gradlew test -DincludeTags=integration` |
-| component | `frontend-typescript-react/src/test/pages/HomePage.test.tsx` | `cd frontend-typescript-react && npm test -- --coverage` |
-| api | `tests-java-gradle-junit5-allure3-selenide/…/tests/api/AuthApiTests.java` | `cd tests-java-gradle-junit5-allure3-selenide && ./gradlew test -Denv=ci -DincludeTags=api` |
-| e2e | `…/tests/e2e/LoginTests.java` | `cd tests-java-gradle-junit5-allure3-selenide && ./gradlew test -Denv=ci -DincludeTags=e2e -DexcludeTags=screenshot,mock` |
-| manual | `…/tests/manual/ExploratoryManualTests.java` | `cd tests-java-gradle-junit5-allure3-selenide && ./gradlew test -Denv=ci -DincludeTags=manual` |
+| unit | `backend/java/backend-java-spring/…/service/ItemServiceTest.java` | `cd backend/java/backend-java-spring && ./gradlew test jacocoTestReport jacocoTestCoverageVerification -DexcludeTags=integration` |
+| integration | `backend/java/backend-java-spring/…/integration/AuthLifecycleIntegrationTest.java` | `cd backend/java/backend-java-spring && ./gradlew test -DincludeTags=integration` |
+| component | `frontend/typescript/frontend-typescript-react/src/test/pages/HomePage.test.tsx` | `cd frontend/typescript/frontend-typescript-react && npm test -- --coverage` |
+| api | `tests/java/tests-java-gradle-junit5-allure3-selenide/…/tests/api/AuthApiTests.java` | `cd tests/java/tests-java-gradle-junit5-allure3-selenide && ./gradlew test -Denv=ci -DincludeTags=api` |
+| e2e | `…/tests/e2e/LoginTests.java` | `cd tests/java/tests-java-gradle-junit5-allure3-selenide && ./gradlew test -Denv=ci -DincludeTags=e2e -DexcludeTags=screenshot,mock` |
+| manual | `…/tests/manual/ExploratoryManualTests.java` | `cd tests/java/tests-java-gradle-junit5-allure3-selenide && ./gradlew test -Denv=ci -DincludeTags=manual` |
 
 Изолированно: тот же `-Denv` / tags + `-Dtest=Class#method` (api/e2e) или точечный класс backend/Vitest.
 
@@ -69,7 +69,7 @@ description: >-
 
 | Ярус | Написать | Снять |
 |------|----------|-------|
-| **unit** | `NoteServiceTest` + HTTP slice `NoteControllerTest` (+ persistence, если entity ещё не в срезе) | **удалить** `jacocoPendingNoteClasses` из `backend-java-spring/build.gradle`; прогон `jacocoTestCoverageVerification`. Не снимать до зелёных тестов. Не оставлять список после unit. |
+| **unit** | `NoteServiceTest` + HTTP slice `NoteControllerTest` (+ persistence, если entity ещё не в срезе) | **удалить** `jacocoPendingNoteClasses` из `backend/java/backend-java-spring/build.gradle`; прогон `jacocoTestCoverageVerification`. Не снимать до зелёных тестов. Не оставлять список после unit. |
 | integration | HTTP+DB заметки (`AuthLifecycleIntegrationTest` как якорь) | — (exclude уже нет) |
 | component | RTL: empty / save PUT / delete; не только stub `GET 404` | дыра «панель без сценария» |
 | api | `NoteApiTests` + клиент; PATCH и 415 здесь, не в e2e | дыра «нет api» |

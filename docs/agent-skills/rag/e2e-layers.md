@@ -8,7 +8,7 @@ tags: [structure, testbase, pages]
 
 **id:** `e2e-layers`
 
-Корень: `tests-java-gradle-junit5-allure3-selenide/src/test/java/`.
+Корень: `tests/java/tests-java-gradle-junit5-allure3-selenide/src/test/java/`.
 
 | Пакет | Назначение |
 |-------|------------|

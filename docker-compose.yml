@@ -20,7 +20,7 @@ services:
 
   backend-java-spring:
     build:
-      context: ./backend-java-spring
+      context: ./backend/java/backend-java-spring
     restart: unless-stopped
     environment:
       DB_HOST: postgres
@@ -40,7 +40,7 @@ services:
 
   frontend-typescript-react:
     build:
-      context: ./frontend-typescript-react
+      context: ./frontend/typescript/frontend-typescript-react
     restart: unless-stopped
     networks:
       - singlestack_internal

@@ -7,7 +7,7 @@ description: >-
 
 # QA e2e slice + Allure + flaky — takeaway
 
-**Модуль:** `tests-java-gradle-junit5-allure3-selenide/`  
+**Модуль:** `tests/java/tests-java-gradle-junit5-allure3-selenide/`  
 **Стек:** JUnit 5 · Selenide · Allure · Gradle
 
 RAG: `docs/agent-skills/rag/ci-gradle-args.md`, `allure-attach.md`, `cfg-stands.md`.
@@ -30,7 +30,7 @@ RAG: `docs/agent-skills/rag/ci-gradle-args.md`, `allure-attach.md`, `cfg-stands.
 1. В **корне takeaway:** `docker compose up -d --build`
 2. `curl -sf http://localhost:8800/api/health`
 3. UI через gateway: `http://localhost:9821/` (не `:9811`)
-4. `cd tests-java-gradle-junit5-allure3-selenide`
+4. `cd tests/java/tests-java-gradle-junit5-allure3-selenide`
 
 ---
 
