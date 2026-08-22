@@ -34,8 +34,8 @@ Upstream курса: [qa-guru/ai-first-student-workspace](https://github.com/qa-
 |------|--------|
 | `.github/workflows/ci.yml`, `docker-compose*.yml` | adopt, если у вас нет своих jobs |
 | `config/*.properties` | adopt URL/ключи; **не** затирать лишние стенды, которые вы добавили |
-| `backend-*/`, `frontend-*/` | adopt багфиксы; conflict в вашем UI — ask |
-| `tests-…/src/test/java` | adopt новые классы/PO; **не** удалять ваши тесты |
+| `backend/`, `frontend/` | adopt багфиксы; conflict в вашем UI — ask |
+| `tests/…/src/test/java` | adopt новые классы/PO; **не** удалять ваши тесты |
 | `.clinerules/`, `docs/agent-skills/`, домашка | **skip** |
 | секреты, `.env` | skip |
 

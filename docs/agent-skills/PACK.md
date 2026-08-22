@@ -62,8 +62,8 @@ CI: глагол в skill (`review`/`create`/`fix`/`run`/`stop`), раннер �
 | [03-env-and-stand.md](examples/multistack/clinerules/03-env-and-stand.md) | pipeline / stage / prod, всегда `-Denv` |
 | [04-one-task-one-layer.md](examples/multistack/clinerules/04-one-task-one-layer.md) | один task = один ярус; дыры называть |
 | [05-homework-check.md](examples/multistack/clinerules/05-homework-check.md) | self-check ДЗ: таблица + статус, без commit |
-| `06-backend/java/backend-java-spring` | JSON API, Flyway, JaCoCo; **Дыра** если нет тестов / pending-список |
-| `07-frontend/typescript/frontend-typescript-react` | DS, `lib/`, testid; **Дыра** если UI без RTL-сценария |
+| `06-backend-java-spring` | JSON API, Flyway, JaCoCo; **Дыра** если нет тестов / pending-список |
+| `07-frontend-typescript-react` | DS, `lib/`, testid; **Дыра** если UI без RTL-сценария |
 
 ## Команда e2e (канон takeaway)
 
