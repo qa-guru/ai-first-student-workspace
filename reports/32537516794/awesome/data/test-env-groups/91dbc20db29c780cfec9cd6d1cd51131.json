@@ -1,1 +1,0 @@
-{"id":"91dbc20db29c780cfec9cd6d1cd51131","fullName":"dev.multistack.app.controller.AuthControllerTest.logoutReturnsNoContent","name":"POST /api/auth/logout returns 204","status":"passed","testResultsByEnv":{"default":"c38a9e8c6e33d884d396dec5bb6f7a65"}}

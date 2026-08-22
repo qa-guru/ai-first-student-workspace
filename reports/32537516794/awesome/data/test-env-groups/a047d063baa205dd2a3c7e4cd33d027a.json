@@ -1,1 +1,0 @@
-{"id":"a047d063baa205dd2a3c7e4cd33d027a","fullName":"dev.multistack.app.controller.AuthControllerTest.loginRejectsBlankCredentials","name":"POST /api/auth/login rejects blank credentials with 400 joining both field errors","status":"passed","testResultsByEnv":{"default":"4cce61670e17d482d3a2a26b60486038"}}

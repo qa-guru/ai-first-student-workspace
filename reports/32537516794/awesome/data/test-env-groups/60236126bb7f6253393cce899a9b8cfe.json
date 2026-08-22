@@ -1,1 +1,0 @@
-{"id":"60236126bb7f6253393cce899a9b8cfe","fullName":"dev.multistack.app.config.SecurityChainTest.meWithTamperedToken","name":"GET /api/auth/me with a tampered token returns 401","status":"passed","testResultsByEnv":{"default":"43a91d4ebb44fa7526ea7ecb4834a04a"}}
