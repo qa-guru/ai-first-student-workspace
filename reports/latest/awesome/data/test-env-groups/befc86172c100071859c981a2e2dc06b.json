@@ -1,0 +1,1 @@
+{"id":"befc86172c100071859c981a2e2dc06b","fullName":"dev.multistack.app.service.NoteServiceTest.patchEnforcesTextLimit","name":"patch accepts text of 2000 characters and rejects blank or 2001","status":"passed","testResultsByEnv":{"default":"9b5e6febcd3d79df751ceac37f345387"}}

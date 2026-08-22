@@ -1,0 +1,1 @@
+{"id":"16ebdfed7ebdc3087eaeda4bde316f3d","fullName":"dev.multistack.app.controller.NoteControllerTest.putEmptyTextIsBadRequest","name":"PUT /api/note with empty text returns 400","status":"passed","testResultsByEnv":{"default":"884e4a22933c73e956a49b327168997a"}}
