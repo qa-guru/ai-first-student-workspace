@@ -1,0 +1,1 @@
+{"id":"6077c56c178c1bbc63bdefa2369b7f61","fullName":"dev.multistack.app.service.NoteServiceTest.patchEmptyObjectIsNoOp","name":"patch {} is a no-op keep of title and text","status":"passed","testResultsByEnv":{"default":"c44ddcaf0e396d510beb40171224bc92"}}

@@ -1,1 +1,0 @@
-{"id":"09cb3c069a78a146a0c7ff418289a5e8","fullName":"dev.multistack.app.service.JwtServiceTest.tokenRoundtrip","name":"createToken and extractUsername roundtrip","status":"passed","testResultsByEnv":{"default":"b30a3045669e86b234bfc9dedb7ae24b"}}

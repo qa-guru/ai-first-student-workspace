@@ -1,0 +1,1 @@
+{"id":"3f839dc53913f30b1513d31291b41e90","fullName":"tests.api.NoteApiTests.deleteReturns204","name":"DELETE /api/note returns 204","status":"passed","testResultsByEnv":{"default":"15d2de38a48aadbd5b834aea7126f76c"}}
