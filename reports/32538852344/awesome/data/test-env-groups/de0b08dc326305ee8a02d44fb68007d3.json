@@ -1,1 +1,0 @@
-{"id":"de0b08dc326305ee8a02d44fb68007d3","fullName":"tests.testinfra.ConfigReaderTest.resolveApiBaseUrlPrefersExplicitKey","name":"resolveApiBaseUrl prefers apiBaseUrl over hubUrl","status":"passed","testResultsByEnv":{"default":"968fb3d0d93e1357f4fb647770128b6c"}}
