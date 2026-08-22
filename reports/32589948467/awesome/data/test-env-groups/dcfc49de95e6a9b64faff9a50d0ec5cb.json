@@ -1,1 +1,0 @@
-{"id":"dcfc49de95e6a9b64faff9a50d0ec5cb","fullName":"dev.multistack.app.service.NoteServiceTest.patchTitleNullBecomesEmpty","name":"patch title null becomes empty string","status":"passed","testResultsByEnv":{"default":"36799935ec64084a6e74b7f116d67686"}}
