@@ -10,7 +10,15 @@ HTTP-глаголы **не дублировать** здесь — SSOT: [`crud-
 «100% пирамиды» = каждый сценарий на своём `@Layer` (`test-pyramid`).  
 Не 100% строк JaCoCo. Не e2e на все глаголы. Slice (`smoke` / `screenshot` / `mock`) ≠ слой.
 
-Продукт: логин/регистрация + health/items + синглтон `/api/note` и `note-panel`. Ярусы takeaway — после «следующий ярус».
+Продукт **на `develop`**: логин/регистрация + health/items + синглтон `/api/note` и `note-panel`.  
+На `main` синглтона **нет** (ДЗ-1). Не мержить `develop` в `main` из-за домашки.
+
+## Ветки
+
+| Ветка | `/api/note` в дереве | Ярусы takeaway |
+|-------|----------------------|----------------|
+| `main` | нет | n/a |
+| `develop` | да | 6/6 |
 
 ## ADR
 
@@ -40,7 +48,7 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 
 Слайд → RFC: нет POST и 409 «already exists»; нет «delete не на prod»; PATCH не в cmp/e2e.
 
-Покрытие takeaway: **6/6 ярусов** (unit, integration, component, api, e2e, manual). `jacocoPendingNoteClasses` снят; backend JaCoCo LINE+BRANCH **1.0** включая `/api/note`. JaCoCo 1.0 ≠ остальные ярусы пака (`tests-java-…`). Vitest coverage выше пола (`lines 92` / `branches 82`) — пол не понижали.
+Покрытие takeaway **на `develop`**: **6/6 ярусов** (unit, integration, component, api, e2e, manual). `jacocoPendingNoteClasses` снят; backend JaCoCo LINE+BRANCH **1.0** включая `/api/note`. JaCoCo 1.0 ≠ остальные ярусы пака (`tests-java-…`). Vitest coverage выше пола (`lines 92` / `branches 82`) — пол не понижали.
 
 ## Лог фаз
 
@@ -50,8 +58,8 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 | 1 | контракт | ADR 006; сначала CRUD-POST | нет | n/a | затем сверка RFC |
 | 1b | канон RFC | RAG `crud-http`; ADR 006 | нет | n/a | POST убран; PUT 201/200 |
 | 1c | SSOT | `crud-http` в monorepo RAG + диета; generic skills без таблицы глаголов | нет | n/a | план ссылается на RAG |
-| 2 | backend | `V3__notes.sql`; `NoteController`/`NoteService`; JaCoCo exclude `jacocoPendingNoteClasses` до яруса unit | `./gradlew test jacocoTestCoverageVerification -DexcludeTags=integration` | 0 | PUT 201/200, PATCH merge-patch, cascade delete; гейт 1.0 на остальном модуле |
-| 3 | frontend | `lib/note.ts`; `note-panel` на Home; stub GET `/api/note` в `HomePage.test` | `npm test` | 0 | Save = PUT; PATCH с UI нет |
+| 2 | backend | `V3__notes.sql`; `NoteController`/`NoteService`; затем ярус unit снял `jacocoPendingNoteClasses` | `./gradlew test jacocoTestCoverageVerification -DexcludeTags=integration` | 0 | PUT 201/200, PATCH merge-patch, cascade delete |
+| 3 | frontend | `lib/note.ts`; `note-panel` на Home; RTL в `HomePage.test` | `npm test` | 0 | Save = PUT; PATCH с UI нет |
 | 1d | план | матрица сценарий × ярус под RFC | нет | n/a | убраны POST+409 и «delete не на prod» |
 | 4 | unit | `NoteServiceTest` + slice `NoteControllerTest` + `NoteRepositoryTest`; снят `jacocoPendingNoteClasses` | `cd backend/java/backend-java-spring && ./gradlew test jacocoTestReport jacocoTestCoverageVerification -DexcludeTags=integration` | 0 | create vs replace не 409; GET DTO/404; PATCH merge; PUT 201/200/400; PATCH 200/415/422; DELETE 204; persistence entity/repo; гейт 1.0 |
 | 5 | integration | `NoteLifecycleIntegrationTest`; HTTP+DB `/api/note`; фабрика, не `user1`; 401 не дублировали | `cd backend/java/backend-java-spring && ./gradlew test -DincludeTags=integration` | 0 | PUT create 201 persist → GET 200 → PUT replace 200 → PATCH merge 200 → DELETE 204 → GET 404 |
@@ -73,5 +81,6 @@ Slice (`smoke` / `screenshot` / `mock`) ≠ колонка.
 
 ## Что осталось человеку
 
-- Ярусы takeaway **закрыты** (6/6). Дыр нет.
+- Ярусы takeaway **закрыты** (6/6). Дыр нет. Не заводить `jacocoPendingNoteClasses` заново.
+- На `main` note нет — не переносить фичу туда из-за ДЗ-1.
 - Stage / PDF / PR — только явным OK. Не коммитить без OK.

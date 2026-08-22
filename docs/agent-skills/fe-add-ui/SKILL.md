@@ -32,7 +32,7 @@ ADR: `docs/adr/008-frontend-ds-not-fork.md`. Фича-заметка — ещё 
 | Что | Образец |
 |-----|---------|
 | страница | `LoginPage` + `lib/auth.ts` + `LOGIN_MESSAGES` |
-| панель на Home | `HomePage` note-panel + `lib/note.ts` |
+| панель на Home | на `develop`: `HomePage` note-panel + `lib/note.ts` (на `main` нет) |
 | HTTP helper | `lib/api.ts` (`apiUrl`) |
 | RTL | `src/test/pages/HomePage.test.tsx` |
 | маршруты | `routes.tsx` |
@@ -40,21 +40,21 @@ ADR: `docs/adr/008-frontend-ds-not-fork.md`. Фича-заметка — ещё 
 ## Steps
 
 1. Контракт HTTP — `crud-http` и README бэкенда, не догадка. Нет API → STOP, сначала `be-add-resource`.
-2. Клиент в `lib/` (`apiUrl`, Bearer как в `note.ts` / `auth.ts`).
+2. Клиент в `lib/` (`apiUrl`, Bearer как в `auth.ts`; на `develop` ещё `note.ts`).
 3. Строки UI — `lib/messages.ts`.
 4. Разметка — компоненты DS (`Panel`, `Button`, `PlaqueField`, …). Header не трогать, кроме пункта nav в `headerConfig.ts`.
 5. Стабильные `data-testid`. Новые — записать в таблицу `frontend/typescript/frontend-typescript-react/README.md`.
 6. Новый URL — только `routes.tsx` (+ nav при необходимости).
 7. Product CSS — `css/app.css` (или рядом) и import в `src/styles.ts`, не в vendor.
 8. RTL: happy-path + stub `fetch` (как `HomePage.test`). На новую панель — assert сценария (save/empty), не только чтобы fetch не упал. `npm test` (и `typecheck` если менял публичные типы).
-9. В ответе: экран/панель, testid, команда, exit code. Нет assert на note-panel — **Дыра** (ярус component в `qa-make-full-pyramid`). **STOP.** Selenide не писать. Не коммитить.
+9. В ответе: экран/панель, testid, команда, exit code. Нет assert на **новую** панель — **Дыра** (ярус component). На `main` не требовать note-panel. **STOP.** Selenide не писать. Не коммитить.
 
 ## DoD
 
 - [ ] Клиент в `lib/`; DS; строки в `messages.ts`
 - [ ] README testid обновлён
 - [ ] RTL зелёный; vendor не изменён; пол coverage не снижен
-- [ ] Живая дыра (note-panel без сценария) названа, не закрыта чужим ярусом
+- [ ] Живая дыра (новый UI без RTL-сценария) названа, не закрыта чужим ярусом. На `main` не ставить дыру note-panel.
 - [ ] Нет кода в `tests-java-…`
 - [ ] Нет commit
 
@@ -63,6 +63,6 @@ ADR: `docs/adr/008-frontend-ds-not-fork.md`. Фича-заметка — ещё 
 ```text
 Rules ON. Прочитай docs/agent-skills/fe-add-ui/SKILL.md
 и чанки fe-react-layers, fe-ds-contract, crud-http.
-Добавь панель по образцу note-panel на HomePage. Save = PUT.
+Добавь панель по образцу HomePage (на develop — note-panel). Save = PUT.
 Не пиши Selenide. Не коммить. После RTL STOP.
 ```

@@ -23,9 +23,9 @@ related: [crud-http, be-module-tests]
 | `exception/` | статус + `message`; тело ошибки `{"message":"..."}` |
 | `config/` | Security / JWT / CORS. Не размазывать по controller |
 
-Схема: `src/main/resources/db/migration/V{n}__{name}.sql`. Новый файл, **не** править уже применённые `V1`/`V2`/`V3`.
+Схема: `src/main/resources/db/migration/V{n}__{name}.sql`. Новый файл, **не** править уже применённые миграции.
 
-Якоря: `ApiController` + `ItemService` (коллекция); `NoteController` + `NoteService` (синглтон, ADR 006). Инъекция — конструктор, не `@Autowired` на поле.
+Якоря в этом дереве: `ApiController` + `ItemService` (коллекция). Синглтон занятия — `NoteController` + `NoteService` на ветке `develop` (ADR 006); на `main` этих классов нет. Инъекция — конструктор, не `@Autowired` на поле.
 
 Security: `SecurityConfig` — GET health/items и POST login/register/logout публичны; `/api/**` иначе **authenticated**. Новый публичный path — строка в chain, не «и так сойдёт».
 

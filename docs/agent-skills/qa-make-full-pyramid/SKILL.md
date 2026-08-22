@@ -11,6 +11,8 @@ description: >-
 `qa-coverage-audit` (карта), `qa-pyramid-plan` (план + одна дыра продукта),
 `qa-write-test` (как писать api/e2e).
 
+На `main` `/api/note` нет → STOP (это ДЗ-2 / `develop`). На текущем `develop` ярусы note закрыты (6/6), `jacocoPendingNoteClasses` в gradle нет — не заводить список и не закрывать unit повторно.
+
 «100% пирамиды» = каждый сценарий фичи на **своём** `@Layer` (RAG `test-pyramid`).
 Не 100% строк JaCoCo (`quality-gates`). Не e2e на все глаголы. Slice ≠ слой.
 
@@ -30,7 +32,7 @@ description: >-
 - Выдумывать контракт (не читая RAG фичи)
 - `localhost` / prod URL в Java
 - Чинить чужие тесты «заодно»
-- Расширять `jacocoPendingNoteClasses`; снимать exclude до зелёных тестов unit
+- Заводить или расширять `jacocoPendingNoteClasses`; снимать exclude до зелёных тестов unit
 - Commit без OK
 
 ## RAG (на вызов — 2–4 id, не все сразу)
@@ -65,15 +67,15 @@ description: >-
 
 ## Когда снимать дыры (заметка)
 
-Пока дыра жива — в **каждом** ответе строка **Дыра:** … Один вызов закрывает **одну** строку. Не расширять pending-список под новую фичу (`be-add-resource` пишет тесты модуля сразу).
+Пока дыра **жива** — в каждом ответе строка **Дыра:** … Один вызов закрывает одну строку. Не заводить pending-список под новую фичу (`be-add-resource` пишет тесты модуля сразу). На текущем `develop` по note дыр нет (6/6).
 
-| Ярус | Написать | Снять |
+| Ярус | Написать (если слот пуст) | Снять |
 |------|----------|-------|
-| **unit** | `NoteServiceTest` + HTTP slice `NoteControllerTest` (+ persistence, если entity ещё не в срезе) | **удалить** `jacocoPendingNoteClasses` из `backend/java/backend-java-spring/build.gradle`; прогон `jacocoTestCoverageVerification`. Не снимать до зелёных тестов. Не оставлять список после unit. |
-| integration | HTTP+DB заметки (`AuthLifecycleIntegrationTest` как якорь) | — (exclude уже нет) |
+| **unit** | тесты модуля; если в gradle был `jacocoPendingNoteClasses` — удалить после зелёных тестов | pending-exclude |
+| integration | HTTP+DB (`AuthLifecycleIntegrationTest` как якорь) | — |
 | component | RTL: empty / save PUT / delete; не только stub `GET 404` | дыра «панель без сценария» |
-| api | `NoteApiTests` + клиент; PATCH и 415 здесь, не в e2e | дыра «нет api» |
-| e2e | один happy path: логин → вижу/создаю (**PUT**) | дыра «нет e2e»; не все глаголы |
+| api | клиент + контракт; PATCH и 415 здесь, не в e2e | дыра «нет api» |
+| e2e | один happy path (**PUT**); не все глаголы | дыра «нет e2e» |
 | manual | exploratory; prod — фабрика, не `user1` | дыра «нет man» |
 
 ## Steps
@@ -81,7 +83,7 @@ description: >-
 1. Фича влита? Нет → STOP. Не кодить продукт.
 2. Ярус = тот, что назвал человек, иначе первый пустой в порядке выше. Rule: один task = один `@Layer`.
 3. Прочитай **этот** SKILL и **2–4** RAG из таблицы яруса (включая RAG фичи).
-4. Api/e2e — пиши по `qa-write-test`. Unit/integration/component/manual — по якорю слоя. Ярус **unit** по заметке: тесты модуля **и** снятие `jacocoPendingNoteClasses` в одном вызове.
+4. Api/e2e — пиши по `qa-write-test`. Unit/integration/component/manual — по якорю слоя. Если в gradle был pending-exclude по этой фиче — снять в том же вызове unit.
 5. Стенды: `cfg-stands`. Разрушение на prod — сиды нельзя; фабрика — только если ADR фичи (в RAG фичи).
 6. Прогон **только этого** яруса (команда из таблицы, лучше точечный `-Dtest`).
 7. Строка в живом отчёте, если есть (`docs/lessons/note-crud-pyramid.md`). Оставшиеся дыры из таблицы — назвать, не закрывать.
@@ -94,7 +96,7 @@ description: >-
 - [ ] 2–4 RAG, не вся папка; контракт из RAG фичи
 - [ ] Стенды названы (`cfg-stands`)
 - [ ] Прогон яруса; exit code в ответе
-- [ ] Если ярус **unit** по заметке: `jacocoPendingNoteClasses` снят, verification 1.0 зелёный
+- [ ] Если в gradle был pending-exclude по этой фиче: список снят, verification 1.0 зелёный
 - [ ] Оставшиеся дыры названы; этот ярус не закрыл чужие
 - [ ] Отчёт обновлён, если файл есть
 - [ ] Нет commit без OK
@@ -104,7 +106,7 @@ description: >-
 
 ```text
 Rules ON. Прочитай docs/agent-skills/qa-make-full-pyramid/SKILL.md
-и 2–4 RAG текущего яруса (unit: be-module-tests, quality-gates, crud-http).
-Фича уже влита. Ярус: unit. NoteServiceTest + NoteControllerTest,
-сними jacocoPendingNoteClasses. Не коммить. После яруса STOP.
+и 2–4 RAG текущего яруса. На main /api/note нет — STOP.
+На develop ярусы note уже 6/6 — не открывай unit заново.
+Если есть живая дыра другой фичи: один ярус, не коммить, STOP.
 ```

@@ -21,7 +21,7 @@ related: [test-pyramid, be-module-tests]
 
 E2e/Selenide **не** кормит JaCoCo живого Spring. «100% e2e» строками — бессмыслица.
 
-`jacocoPendingNoteClasses` в `backend/java/backend-java-spring/build.gradle` — дыра занятия (заметка без unit), не шаблон. Не расширять. Снимать на ярусе **unit** (`qa-make-full-pyramid`). Зелёный гейт с непустым списком ≠ «модуль покрыт». Фронт: не понижать пол в `vitest.config.ts`; stub fetch ≠ покрытие сценария.
+`jacocoPendingNoteClasses` — не шаблон. Не заводить. В текущем takeaway списка в `build.gradle` нет (`main` — нет `/api/note`; `develop` — unit закрыт, exclude снят). Зелёный гейт с непустым exclude ≠ «модуль покрыт». Фронт: не понижать пол в `vitest.config.ts`; stub fetch ≠ покрытие сценария.
 
 ## Do
 

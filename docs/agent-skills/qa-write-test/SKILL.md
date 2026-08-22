@@ -21,7 +21,7 @@ RAG (прочитай до кода): `po-fluent`, `po-locators`, `po-step`, `te
 - `localhost` / prod URL / пароль хаба в Java
 - Деструктивный сценарий на prod без OK / без ADR фичи с фабрикой (`cfg-stands`)
 - Закрывать JaCoCo / RTL / все глаголы HTTP из этого skill (unit/cmp — `qa-make-full-pyramid`)
-- Молчать, если в продукте `/api/note` / note-panel, а в этом модуле нет api/e2e по слоту: в ответе **Дыра**
+- На `main` нет `/api/note` — не выдумывать дыру note. На `develop` слот api/e2e по note уже есть; **Дыра** только если фича в дереве, а слота нет
 - Commit без OK
 
 ## Якоря

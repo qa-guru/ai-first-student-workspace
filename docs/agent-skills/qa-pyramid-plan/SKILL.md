@@ -35,8 +35,8 @@ ADR: `docs/adr/005-screenshot-not-layer.md` после sync (в паке: `docs/
 | Дыра | Куда |
 |------|------|
 | JSON login 401 | `AuthApiTests`, не новый UI-клик |
-| `jacocoPendingNoteClasses` | ярус **unit** модуля + снять exclude, не e2e |
-| note-panel без RTL-сценария | component (`HomePage.test`), не Selenide |
+| `jacocoPendingNoteClasses` (если список вдруг в gradle) | ярус **unit** модуля + снять exclude, не e2e |
+| note-panel без RTL (только если панель в дереве и сценария нет) | component (`HomePage.test`), не Selenide |
 | `/api/note` без Rest Assured | `tests/api`, не новый UI-клик |
 | Текст ошибки на форме | `LoginTests` + PO, уже есть wrong password |
 | Чеклист exploratory | `tests/manual`, `@Manual` |

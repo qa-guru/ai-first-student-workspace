@@ -14,7 +14,7 @@ alwaysApply: false
 - Публичный path — явно в `SecurityConfig`; иначе `/api/**` authenticated.
 - HTTP: RAG `crud-http`, не POST+409 на синглтоне.
 - Тесты **этого** модуля (JaCoCo 1.0). Не Selenide в том же task.
-- Новый код без тестов модуля — в ответе **Дыра**, не молчать. Не дописывать классы в `jacocoPendingNoteClasses` (только `/api/note` до яруса unit). Не понижать 1.0.
+- Новый код без тестов модуля — в ответе **Дыра**, не молчать. Не заводить `jacocoPendingNoteClasses`. Не понижать 1.0.
 - Commit без OK нельзя.
 
 Skill: `docs/agent-skills/be-add-resource/SKILL.md`.  

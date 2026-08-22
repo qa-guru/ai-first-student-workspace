@@ -9,7 +9,7 @@ related: [fe-react-layers, po-locators]
 
 **id:** `fe-ds-contract`
 
-SSOT визуала: `@zero-design-system/react` → `vendor/frontend-react-ui`. CSS lean runtime: `vendor/frontend-javascript-app/css/`, подключается из `src/styles.ts`.
+SSOT визуала: `@zero-design-system/react` → `vendor/frontend-react-ui`. CSS lean runtime: `vendor/ds/css/`, подключается из `src/styles.ts`.
 
 | Делать | Не делать |
 |--------|-----------|
@@ -18,7 +18,7 @@ SSOT визуала: `@zero-design-system/react` → `vendor/frontend-react-ui`.
 | Тексты ошибок и confirm — `lib/messages.ts` | Строки-литералы, которые уже есть в messages |
 | Save на синглтоне = `PUT` (`crud-http`) | PATCH с UI, если ADR фичи не просит |
 
-Якоря testid (не ломать без смены PO): `login-form`, `submit-button`, `error-message`, `health-panel`, `items-list`, `note-panel`, `note-save-button`, … — таблица в `frontend/typescript/frontend-typescript-react/README.md`.
+Якоря testid (не ломать без смены PO): `login-form`, `submit-button`, `error-message`, `health-panel`, `items-list` — таблица в `frontend/typescript/frontend-typescript-react/README.md`. `note-panel` / `note-save-button` — только ветка `develop` (на `main` панели нет).
 
 Header: `<AppHeader config={headerConfig} scriptSrc={appPath('/js/header.js')} />`. `npm run dev` без compose **не** отдаёт `header.js` — это не баг фичи.
 

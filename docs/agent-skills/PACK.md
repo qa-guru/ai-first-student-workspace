@@ -39,12 +39,12 @@
 | `qa-bootstrap-framework` | фреймворк с чеклиста | позже | [example](examples/multistack/qa-bootstrap-framework/SKILL.md) |
 
 CI: глагол в skill (`review`/`create`/`fix`/`run`/`stop`), раннер в RAG (`ci-github-actions` / `ci-jenkins`). `qa-run-ci` ≠ `qa-run-stand`.  
-`qa-make-full-pyramid` ≠ `qa-pyramid-plan` (план + одна дыра) и ≠ `qa-write-test` (один автотест): один вызов = один ярус уже влитой фичи, потом STOP. Контракт фичи — RAG (HTTP CRUD: `crud-http`), не таблица в generic skill. Дыры продукта (JaCoCo pending, нет api/e2e) — называть; снимать по таблице в `qa-make-full-pyramid` (unit → exclude).  
+`qa-make-full-pyramid` ≠ `qa-pyramid-plan` (план + одна дыра) и ≠ `qa-write-test` (один автотест): один вызов = один ярус уже влитой фичи, потом STOP. Контракт фичи — RAG (HTTP CRUD: `crud-http`), не таблица в generic skill. Не заводить JaCoCo pending-список. На текущем `develop` ярусы note закрыты (6/6).  
 Не skill: TMS (`test-taxonomy` / `tms-meta`), JaCoCo/Sonar (`quality-gates`). Хост ≠ stand.
 
 ## Product skills (не QA)
 
-Фича в коде. Пирамида takeaway — после, `qa-make-full-pyramid`. HTTP — тот же `crud-http`. Новый ресурс: тесты модуля сразу, не дописывать `jacocoPendingNoteClasses`.
+Когда фича уже в коде — пирамида takeaway после, `qa-make-full-pyramid`. HTTP — тот же `crud-http`. Новый ресурс: тесты модуля сразу; не заводить `jacocoPendingNoteClasses`. На `main` `/api/note` нет.
 
 | Skill | Промпт | ADR | RAG |
 |-------|--------|-----|-----|

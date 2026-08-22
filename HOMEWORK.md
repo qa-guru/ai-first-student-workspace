@@ -88,17 +88,17 @@ cd tests/java/tests-java-gradle-junit5-allure3-selenide
 Делай **после** принятого ДЗ-1, в том же репозитории (новый чат агента).
 
 1. Вставь промпт ДЗ-2.
-2. Агент встаёт на `develop`, пересобирает compose, проверяет `/api/note`, пишет **план** пирамиды.
-3. Сдай в чат курса блок **«Сдача ДЗ»**. Тесты note и ярусы takeaway в этом ДЗ **не пишут**.
+2. Агент встаёт на `develop`, пересобирает compose, проверяет `/api/note`, пишет **план** (= inventory факта, сверка с `docs/lessons/note-crud-pyramid.md`).
+3. Сдай в чат курса блок **«Сдача ДЗ»**. Тесты note в этом ДЗ **не пишут** (существующие не трогать).
 
-Фича уже на `develop` (`NoteController`, `note-panel`, ADR 006). Дальше, отдельными чатами: «следующий ярус» по `qa-make-full-pyramid`.
+Фича уже на `develop` (`NoteController`, `note-panel`, ADR 006). На upstream qa-guru ярусы takeaway **закрыты (6/6)**. Не требовать 0/6 и не выдумывать дыры, если слоты заполнены.
 
 ### Промпт ДЗ-2
 
 ```text
-Репозиторий уже развёрнут с прошлого ДЗ (main + compose + e2e). Это второе ДЗ: ветка develop с фичей note и ПЛАН пирамиды. Не коммить. Не push. Не prod. Не git reset --hard.
+Репозиторий уже развёрнут с прошлого ДЗ (main + compose + e2e). Это второе ДЗ: ветка develop с фичей note и ПЛАН пирамиды (inventory факта). Не коммить. Не push. Не prod. Не git reset --hard.
 
-Фичу note не реализуй — она уже на develop. Автотесты note не пиши. qa-make-full-pyramid не открывай, пока я не скажу «следующий ярус».
+Фичу note не реализуй — она уже на develop. Автотесты note не пиши и не меняй. qa-make-full-pyramid не открывай, пока я не скажу «следующий ярус». На upstream develop ярусы note уже 6/6 — не требовать 0/6.
 
 1) Встань на develop.
    origin = мой форк. Если origin/develop нет:
@@ -134,8 +134,9 @@ cd tests/java/tests-java-gradle-junit5-allure3-selenide
    Таблица: сценарий × unit × integration × component × api × e2e × manual × дыра?
    Канон HTTP — RAG crud-http (синглтон: PUT 201/200, нет POST и нет 409; PATCH только api; один e2e happy-path).
    Slice (smoke / screenshot / mock) ≠ ярус. JaCoCo ≠ «100% пирамиды».
-   Для каждой дыры: ярус + класс-якорь + стенды (pipeline / stage / prod). Delete на prod — фабрика+teardown, не сид user1.
-   Порядок, когда начнём закрывать: unit → integration → component → api → e2e → manual.
+   Сверь с docs/lessons/note-crud-pyramid.md после своего плана, не копируй таблицу как ответ.
+   Если в дереве 6/6 — так и напиши: дыр нет, следующий ярус n/a. Не изобретай три дыры.
+   Если слоты пусты: для каждой дыры ярус + якорь + стенды (pipeline / stage / prod). Delete на prod — фабрика+teardown, не сид user1.
    Реализацию не начинай.
 
 5) ДЗ готово только если все пункты ниже истинны. Иначе статус «не сдано» и что чинить — без commit.
@@ -143,8 +144,7 @@ cd tests/java/tests-java-gradle-junit5-allure3-selenide
    - health :8800 → HTTP 2xx
    - GET /api/note без токена → 401 (фича на стенде есть)
    - в ответе есть таблица сценарий × ярус, не «у нас всё покрыто» без таблицы
-   - названы 3 приоритетные дыры: ярус + якорь + почему не e2e
-   - у каждой дыры стенды: pipeline / stage / prod
+   - если покрытие < 6/6 — названы приоритетные дыры (ярус + якорь + почему не e2e) и стенды; если 6/6 — явно «дыр нет»
    - в плане нет POST+409 на синглтоне и нет @Layer("screenshot") / @Layer("smoke")
    - файлы тестов note не созданы и не изменены
    - в git нет нового commit / push
@@ -159,13 +159,10 @@ cd tests/java/tests-java-gradle-junit5-allure3-selenide
 - UI: http://localhost:9821/
 - GET /api/note без токена: <HTTP-код, ожидаем 401>
 - Фича в коде: NoteController + note-panel — да/нет
-- Покрытие takeaway по note: <N>/6 ярусов (на develop должно быть 0/6)
+- Покрытие takeaway по note: <N>/6 ярусов (upstream develop = 6/6)
 - Таблица плана: (вставь таблицу сценарий × unit × int × cmp × api × e2e × man × дыра)
-- 3 дыры:
-  1) <сценарий> → ярус <…> → якорь <класс> → стенды <pipeline/stage/prod> → почему не e2e
-  2) …
-  3) …
-- Следующий ярус (когда скажут): unit
-- Тесты note в этом ДЗ: не писались
+- Дыры: нет, если N=6; иначе 3 приоритета (ярус + якорь + стенды + почему не e2e)
+- Следующий ярус (когда скажут): n/a если 6/6, иначе unit
+- Тесты note в этом ДЗ: не писались и не менялись
 - Статус: сдано / не сдано
 ```

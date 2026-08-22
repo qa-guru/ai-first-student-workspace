@@ -11,7 +11,7 @@ related: [quality-gates, test-layers, be-spring-layers]
 
 Это **не** пирамида takeaway (`tests/java/tests-java-gradle-junit5-allure3-selenide`). Гейт модуля: JaCoCo **LINE+BRANCH 1.0** (`quality-gates`).
 
-Новый код без тестов модуля CI не проходит — **кроме** явного `jacocoPendingNoteClasses` (только `/api/note`, до яруса unit). Пока список не пуст — в ответе **Дыра**. Не расширять под другую фичу. Снимать вместе с тестами модуля (`qa-make-full-pyramid`, ярус unit).
+Новый код без тестов модуля CI не проходит. Pending-exclude (`jacocoPendingNoteClasses`) — не шаблон: не заводить и не расширять. На `main` списка нет (нет `/api/note`). На `develop` список снят (ярус unit закрыт).
 
 | База | Что | Якорь |
 |------|-----|-------|
@@ -36,5 +36,4 @@ cd backend/java/backend-java-spring
 - Писать Selenide / Rest Assured takeaway в этом task (`qa-write-test` / `qa-make-full-pyramid`).
 - Считать «зелёный `./gradlew test` без verification» достаточным.
 - Понижать `minimum = 1.0` в `build.gradle`.
-- Расширять `jacocoPendingNoteClasses` под новый ресурс.
-- Снимать список до тестов модуля; оставлять после яруса unit.
+- Заводить или расширять `jacocoPendingNoteClasses`.

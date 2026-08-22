@@ -20,7 +20,7 @@ cd tests/java/tests-java-gradle-junit5-allure3-selenide
 - Fix тестов — только после triage и OK человека.
 - Прод-стенд только `-Denv=prod` + рабочий remoteUrl.
 - Новый автотест обязан быть годен для **pipeline / stage / prod** (URL из properties, не localhost в коде). RAG: `docs/agent-skills/rag/cfg-stands.md`.
-- Новый функционал без своего яруса — в ответе **Дыра** (не молчать). JaCoCo-exclude заметки снимать на ярусе unit (`qa-make-full-pyramid`).
+- Новый функционал без своего яруса — в ответе **Дыра** (не молчать). Не заводить JaCoCo-exclude под новую фичу.
 
 ## Workflow
 

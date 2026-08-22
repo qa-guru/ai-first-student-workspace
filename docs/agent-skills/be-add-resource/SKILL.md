@@ -19,11 +19,11 @@ ADR модуля: `docs/adr/007-backend-api-only.md`. Если фича уже �
 ## Do not
 
 - HTML / шаблоны / cookie-session (ADR 007)
-- Править применённые Flyway `V1`/`V2`/`V3`
+- Править уже применённые Flyway-миграции
 - POST+409 на синглтоне; PUT, который не создаёт (`crud-http`)
 - Писать тесты в `tests/java/tests-java-gradle-junit5-allure3-selenide` в этом вызове
-- Понижать JaCoCo 1.0. Дописывать чужие классы в `jacocoPendingNoteClasses` (список только для `/api/note` до яруса unit)
-- Молчать, если тестов модуля нет или pending-список не пуст: в ответе **Дыра**
+- Понижать JaCoCo 1.0. Заводить или расширять `jacocoPendingNoteClasses`
+- Молчать, если тестов модуля нет: в ответе **Дыра**
 - Commit без OK
 
 ## Якоря
@@ -31,7 +31,7 @@ ADR модуля: `docs/adr/007-backend-api-only.md`. Если фича уже �
 | Что | Образец |
 |-----|---------|
 | коллекция | `ApiController` + `ItemService` + `V1__items.sql` |
-| синглтон | `NoteController` + `NoteService` + `V3__notes.sql` |
+| синглтон | на `develop`: `NoteController` + `NoteService` + `V3__notes.sql` (на `main` нет) |
 | unit | `ItemServiceTest` |
 | HTTP slice | `AuthControllerTest` |
 | persistence | `UserRepositoryTest` / `FlywayMigrationTest` |
@@ -42,7 +42,7 @@ ADR модуля: `docs/adr/007-backend-api-only.md`. Если фича уже �
 2. Схема? Новый `V{n}__…sql` в `src/main/resources/db/migration/`.
 3. Слои по `be-spring-layers`: entity → repository → dto+validation → service → controller. Controller тонкий.
 4. Security: публичный GET/POST — строка в `SecurityConfig`; иначе хватит `/api/**` authenticated.
-5. Ошибки — `{"message":"..."}` (как `NoteException` / `AuthException`).
+5. Ошибки — `{"message":"..."}` (как `AuthException`; на `develop` ещё `NoteException`).
 6. Строка в таблицу Contract в `backend/java/backend-java-spring/README.md` (SSOT модуля).
 7. Тесты модуля по `be-module-tests` (минимум service unit + `@WebMvcTest`; новая таблица — persistence slice).
 8. Прогон:
@@ -52,14 +52,14 @@ cd backend/java/backend-java-spring
 ./gradlew test jacocoTestReport jacocoTestCoverageVerification -DexcludeTags=integration
 ```
 
-9. В ответе: путь ресурса, глаголы, команда, exit code. Если `jacocoPendingNoteClasses` ещё в `build.gradle` — строка **Дыра** (снимет ярус unit в `qa-make-full-pyramid`). **STOP.** Пирамида takeaway — не начинать. Не коммитить.
+9. В ответе: путь ресурса, глаголы, команда, exit code. Pending-списка в `build.gradle` быть не должно; если появился — **Дыра**. **STOP.** Пирамида takeaway — не начинать. Не коммитить.
 
 ## DoD
 
 - [ ] Слои и Flyway как в RAG; HTTP как `crud-http`
 - [ ] README Contract обновлён
-- [ ] Тесты модуля есть; JaCoCo verification зелёный; новых имён в `jacocoPendingNoteClasses` нет
-- [ ] Живая дыра (заметка без unit) названа, не закрыта в этом task
+- [ ] Тесты модуля есть; JaCoCo verification зелёный; pending-exclude не заведён
+- [ ] На `main` не ставить дыру «заметка без unit» — `/api/note` на этой ветке нет
 - [ ] Нет кода в `tests-java-…`
 - [ ] Нет commit
 
@@ -68,6 +68,6 @@ cd backend/java/backend-java-spring
 ```text
 Rules ON. Прочитай docs/agent-skills/be-add-resource/SKILL.md
 и чанки be-spring-layers, crud-http, be-module-tests.
-Добавь ресурс по образцу NoteController (синглтон) / ItemService (коллекция).
+Добавь ресурс по образцу ItemService (коллекция) / на develop — NoteController (синглтон).
 Не пиши Selenide. Не коммить. После модуля STOP.
 ```

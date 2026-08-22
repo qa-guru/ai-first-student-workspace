@@ -23,9 +23,9 @@ related: [fe-ds-contract, crud-http]
 | `css/` (модуль) | product CSS |
 | `test/` | Vitest + RTL (`component_rtl`) |
 
-API: `apiUrl('/…')` из `lib/appBase.ts`, не `localhost` и не хардкод хоста. Клиент фичи — файл в `lib/` (`api.ts`, `auth.ts`, `note.ts`), не `fetch` размазанный по JSX.
+API: `apiUrl('/…')` из `lib/appBase.ts`, не `localhost` и не хардкод хоста. Клиент фичи — файл в `lib/` (`api.ts`, `auth.ts`; `note.ts` — на `develop`), не `fetch` размазанный по JSX.
 
-Новый route — объект в `routes.tsx` (и пункт nav в `lib/headerConfig.ts`, если экран в меню). Якорь панели на Home: `HomePage` + `lib/note.ts`.
+Новый route — объект в `routes.tsx` (и пункт nav в `lib/headerConfig.ts`, если экран в меню). Якорь панели note на Home — ветка `develop`: `HomePage` + `lib/note.ts`. На `main` панели нет.
 
 ```bash
 cd frontend/typescript/frontend-typescript-react
@@ -34,7 +34,7 @@ npm run typecheck
 npm run lint
 ```
 
-Coverage: `npm run test:coverage` — пол в `vitest.config.ts` (не 100%, не понижать). Selenide этот % не кормит. Новый UI без RTL-assert сценария — **Дыра**; stub `GET 404` в `HomePage.test` ≠ покрытие note-panel (ярус component).
+Coverage: `npm run test:coverage` — пол в `vitest.config.ts` (не 100%, не понижать). Selenide этот % не кормит. Новый UI без RTL-assert сценария — **Дыра**. Stub `GET 404` ≠ покрытие панели. На `main` не требовать note-panel.
 
 ## Don't
 
