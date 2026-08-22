@@ -1,1 +1,0 @@
-{"id":"ad3beba1512e2c68c2460e28e498327b","fullName":"dev.multistack.app.service.NoteServiceTest.patchRejectsNonObject","name":"patch rejects a null or non-object body with 400","status":"passed","testResultsByEnv":{"default":"0b8ab5878844c1bd1d7c0efafe8c028f"}}

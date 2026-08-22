@@ -1,1 +1,0 @@
-{"id":"3f7d9f2b2eeb83f2a0528ef4bc9069e2","fullName":"tests.testinfra.ConfigReaderTest.resolveBaseUrlFailsWhenBothEmpty","name":"resolveBaseUrl fails fast when baseUrl and basePath are empty","status":"passed","testResultsByEnv":{"default":"14c9e59f4d8b5b4263f2c083d4753758"}}
