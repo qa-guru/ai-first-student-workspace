@@ -4,6 +4,11 @@ body {
   line-height: normal;
 }
 
+/* Author `display` on `.panel` beats UA `[hidden]`. Product overlay until DS etalon has this. */
+.panel[hidden] {
+  display: none !important;
+}
+
 /* Shell: page-shell + page-shell--below-header on <main>; narrow max-width only */
 .multistack {
   max-width: 960px;
