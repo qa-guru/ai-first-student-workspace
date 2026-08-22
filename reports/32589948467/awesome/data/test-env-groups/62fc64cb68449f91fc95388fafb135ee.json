@@ -1,0 +1,1 @@
+{"id":"62fc64cb68449f91fc95388fafb135ee","fullName":"dev.multistack.app.service.NoteServiceTest.patchEnforcesTitleLimit","name":"patch accepts title of 120 characters and rejects 121","status":"passed","testResultsByEnv":{"default":"a4c94c96854c52e81fef719ff32c6446"}}

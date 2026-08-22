@@ -1,0 +1,1 @@
+{"id":"a890abc29299f3434ed5508af2887edf","fullName":"dev.multistack.app.controller.AuthControllerTest.loginUnsupportedMediaTypeDoesNotSetAcceptPatch","name":"POST /api/auth/login 415 does not advertise Accept-Patch from note advice","status":"passed","testResultsByEnv":{"default":"436eabc81f76cd26d7b40380f52c549e"}}
