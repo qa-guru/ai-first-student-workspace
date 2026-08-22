@@ -1,1 +1,0 @@
-{"id":"96fc5e6a21f785d7e5139ad34c37f8b6","fullName":"dev.multistack.app.service.NoteServiceTest.patchRejectsNonStringText","name":"patch rejects a non-string text with 400","status":"passed","testResultsByEnv":{"default":"024089331b42918c69f94e37ec5f2752"}}
