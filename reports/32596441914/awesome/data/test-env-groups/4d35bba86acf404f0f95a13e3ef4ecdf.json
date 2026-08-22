@@ -1,1 +1,0 @@
-{"id":"4d35bba86acf404f0f95a13e3ef4ecdf","fullName":"dev.multistack.app.repository.UserRepositoryTest.findByUsernameEmptyForUnknownUser","name":"findByUsername is empty for an unknown user","status":"passed","testResultsByEnv":{"default":"a0b40208510b199b9c078ee4fef79ccf"}}
