@@ -27,7 +27,7 @@
   </header>
 
   <h1 class="h1">Два промпта: стенд, потом план — не тесты</h1>
-  <p class="lead"><code>main</code> — логин / items, без note. <code>develop</code> — одна заметка уже влита, ярусов takeaway <strong>0/6</strong>. Промпты целиком: <code>HOMEWORK.md</code>. В чат курса копируют только блок «Сдача ДЗ».</p>
+  <p class="lead"><code>main</code> — логин / items, без note. <code>develop</code> — заметка влита, ярусы takeaway на upstream <strong>6/6</strong>. Промпты: <code>HOMEWORK.md</code>. В чат курса — только блок «Сдача ДЗ».</p>
 
   <div class="body">
     <div class="grid-2" style="display:grid;gap:8px">
@@ -55,7 +55,7 @@ RAG ci-gradle-args · cfg-stands · allure-attach
       <section class="panel panel--good">
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">ДЗ-2 · develop · note + план</p></div>
         <div class="panel__body">
-          <p class="tiny muted">После ДЗ-1, новый чат. Checkout <code>develop</code> (или <code>upstream/develop</code>) → rebuild. Фичу и тесты note не писать.</p>
+          <p class="tiny muted">После ДЗ-1, новый чат. Checkout <code>develop</code> → rebuild. Фичу и тесты note не писать (существующие не трогать). План = inventory; если 6/6 — дыр нет.</p>
           <p class="prompt">Skills qa-coverage-audit · qa-pyramid-plan
 ADR 006 · RAG test-pyramid · crud-http · cfg-stands
 qa-make-full-pyramid — только после «следующий ярус».</p>
@@ -65,10 +65,10 @@ qa-make-full-pyramid — только после «следующий ярус»
               <tr><td>Ветка</td><td><code>develop</code>, не merge в main</td></tr>
               <tr><td>Фича жива</td><td>GET <code>/api/note</code> без токена → <strong>401</strong> (не 404)</td></tr>
               <tr><td>Код</td><td><code>NoteController</code> + <code>note-panel</code> — да</td></tr>
-              <tr><td>Покрытие</td><td>takeaway note <strong>0/6</strong> ярусов</td></tr>
-              <tr><td>План</td><td>таблица сценарий × ярус; не «всё покрыто»</td></tr>
-              <tr><td>3 дыры</td><td>ярус + якорь + стенды + почему не e2e</td></tr>
-              <tr><td>Следующий</td><td>unit · тесты в этом ДЗ не писались</td></tr>
+              <tr><td>Покрытие</td><td>takeaway note: факт из дерева (upstream <strong>6/6</strong>)</td></tr>
+              <tr><td>План</td><td>таблица сценарий × ярус; не копировать отчёт слепо</td></tr>
+              <tr><td>Дыры</td><td>нет, если 6/6; иначе ярус + якорь + стенды</td></tr>
+              <tr><td>Следующий</td><td>n/a если 6/6 · тесты в этом ДЗ не писались</td></tr>
             </tbody>
           </table>
         </div>
