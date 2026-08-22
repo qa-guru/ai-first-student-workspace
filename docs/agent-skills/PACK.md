@@ -74,5 +74,5 @@ cd tests/java/tests-java-gradle-junit5-allure3-selenide
 
 Gradle-task `testE2e` **нет**. `@Tag("smoke")` есть на узких методах — **prod slice**, не ярус. На занятии срез = тег `e2e` минус screenshot/mock.
 
-CI: `.github/workflows/ci.yml`. Прод: [https://ai-first.autotests.ai/](https://ai-first.autotests.ai/) (`-Denv=prod`), не матрица `/stack/…`.  
+CI: `.github/workflows/ci.yml` (тот же файл, что clone). Прод: [https://ai-first.autotests.ai/](https://ai-first.autotests.ai/) (`-Denv=prod`), не матрица `/stack/…`.  
 ADR курса (takeaway `docs/adr/`): [005](../adr/005-screenshot-not-layer.md) screenshot ≠ слой, [006](../adr/006-one-note-not-list.md) синглтон note, [007](../adr/007-backend-api-only.md) Spring API-only, [008](../adr/008-frontend-ds-not-fork.md) DS не форк. HTTP — RAG [`crud-http`](rag/crud-http.md) (SSOT monorepo `docs/rag/testing/crud-http.md`). Не путать с monorepo `docs/adr/005-testing-pyramid-review.md` / `006-allurerc-mjs-ethalon.md`. Проверяльщик школы (преподаватель): monorepo ADR 014 + skill `qa-homework-check`.

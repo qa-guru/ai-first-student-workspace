@@ -45,7 +45,8 @@ cd tests/java/tests-java-gradle-junit5-allure3-selenide
 ./gradlew test -Denv=ci -DincludeTags=e2e -DexcludeTags=screenshot,mock
 ```
 
-CI: `.github/workflows/ci.yml` (same orchestrator as the clone; stack knobs in `env:`).  
+CI: `.github/workflows/ci.yml` (same bytes as the clone; stack knobs in `env:`).  
+School stand vars (maintainers, not student forks): `APP_URL` / `STAGE_APP_URL`, `PUBLIC_HOST=ai-first.autotests.ai`, `DEPLOY_MODE=compose`, `DEPLOY_APP_DIR` / `STAGE_APP_DIR`. Students do not copy those `DEPLOY_*` unless they raise their own host (`qa-setup-host`).  
 Prod stand: [https://ai-first.autotests.ai/](https://ai-first.autotests.ai/) (`-Denv=prod`).  
 Stage: [https://stage.ai-first.autotests.ai/](https://stage.ai-first.autotests.ai/) (`-Denv=stage`).
 

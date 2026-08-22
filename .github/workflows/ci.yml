@@ -1,54 +1,129 @@
 name: CI
 
-# Default-stack takeaway only (java-spring + ts-react + java-selenide).
-# SSOT: this file. Runnable copy: takeaway `.github/workflows/ci.yml` (teaching name).
-# Do NOT copy over the matrix clone `autotests-ai-multistack-app/.github/workflows/ci.yml`.
+# Teaching tests: two knobs (-Denv / -DincludeTags) pick stand and slice.
+# Layer jobs are checkout + `uses: ./backend|frontend|tests/.github/actions/<verb>`
+# with `module_dir` from stack knobs (format). Commands a
+# student types locally live inside the module action, not in this file.
 #
-# Paths are NESTED (same as etalon cells). Service names stay backend-java-spring / frontend-typescript-react.
+# One workflow for clone, takeaway, and children. No *_github.yml siblings.
+# Host / CD: repo vars (APP_URL, DEPLOY_MODE=ghcr|compose, DEPLOY_APP_DIR, …).
+# Missing SONAR_TOKEN skips Sonar and does not block deploy. TestOps stays soft.
 #
-# Graph (same job ids as the matrix clone, thin takeaway — no TestOps / Sonar / lanes):
-#   backend-unit-tests → integration-tests → build-backend
-#   frontend-unit-tests ─┐
-#   tests-harness ───────┴→ ui-mock-tests → build-frontend
-#   tests-harness also gates api-tests-stage / api-tests / e2e-tests-stage / e2e-tests
-#   build-* → deploy-*-stage → api-tests-stage → e2e-tests-stage  (push develop)
-#   e2e-tests-stage → deploy-backend / deploy-frontend → api-tests → e2e-tests
-#     (push main/master; stage jobs skip, prod does not wait on stage e2e)
-#   publish-allure-report
+# Active stack knobs live in `env:` once: BACKEND_LANG / BACKEND_FRAMEWORK,
+# FRONTEND_LANG / FRONTEND_FRAMEWORK, TESTS_LANG / BUILDER / FRAMEWORK / REPORT / UI_LIBRARY.
+# Family adapters under backend|frontend|tests/.github/actions/ statically
+# `uses:` the language family (GitHub does not interpolate `uses:`).
+# BACKEND_LANG: java/kotlin → module actions; python/go/javascript/typescript → family.
+# FRONTEND_LANG: typescript → frontend/typescript/.github/actions,
+# javascript → frontend/javascript/.github/actions.
+# TESTS_LANG: java → module; javascript/python → family; typescript/unknown → STOP.
 #
-# Pipeline api/e2e (`-Denv=ci`) stay local (`qa-run-stand`). CI api/e2e run after
-# SSH deploy, like the matrix clone. Host still `compose up --build` (no GHCR).
-#
-# Stands:
-#   pipeline — compose on the runner / laptop (`-Denv=ci`)
-#   stage    — https://stage.ai-first.autotests.ai/  (push develop or dispatch deploy_stage)
-#   prod     — https://ai-first.autotests.ai/        (push main/master or dispatch deploy)
-#
-# Allure: one job publish-allure-report (lock pins, npm ci, generate). Pages is a
-# soft step in that job (push only). GitHub rejects expressions in
-# jobs.<id>.permissions — that job uses literal contents: write.
-#
-# Not in this file: frontend sidecars, other languages, TestOps, Sonar, Telegram,
-# stage mutex, trigger lanes. Screenshot compare: ui-mock-tests (every PR) and
-# e2e-tests-stage. Rewrite: dispatch update_mock_screenshots / update_stage_screenshots
-# / update_ci_screenshots (compose + -Denv=ci → screenshots/prod/linux).
+# Allure: trigger opens one shared TestOps job-run (soft); test jobs stream live and
+# publish raw results. publish-allure-report is gating (lock pins, npm ci, generate).
+# Pages: that job pushes gh-pages (soft); live deploy is deploy-github-pages
+# (upload-pages-artifact@v5 + deploy-pages@v5). Retry Pages without the graph:
+# workflow_dispatch .github/workflows/pages.yml. TestOps / Telegram stay soft too.
+# TestOps UI rerun: workflow_dispatch + ALLURE_JOB_RUN_ID → ALLURE_KEEP_TESTPLAN=true.
+# Launch env axes: BROWSER / OS / ENDPOINT / VERSION(=sha) / BRANCH.
+# SSOT host: allure.qa.guru (legacy allure.autotests.cloud redirects).
+# Layers (classical): unit · integration (no UI) · api · e2e · manual
+# Sideways FE: component (jsdom) — only the active FRONTEND (same teaching knob as deploy).
+# Screenshot (@Tag screenshot): compare in ui-mock-tests (every PR) and e2e-tests-stage (stage CD).
+# Prod e2e-tests screenshot is dispatch run_screenshot.
+# Browsers: mock = local CFT / Playwright Chromium (hub cannot see :9911).
+# Live e2e/manual = Selenoid secrets.SELENOID_WEBDRIVER_URL (WebDriver) / secrets.SELENOID_PLAYWRIGHT_URL (Playwright).
+# rewrite: update_mock_screenshots / update_stage_screenshots / update_e2e_screenshots / update_ci_screenshots, not a CD job.
+# ui-ci-tests: dispatch update_ci_screenshots; local compose -Denv=ci writes screenshots/prod/ (not live prod).
+# CD: push develop → stage only (WIP). Push main → same SHA to stage, then prod
+# (prod jobs `needs` e2e-tests-stage). `trigger` maps push paths / dispatch `deploy`
+# onto the same flags. Sonar gates deploy, not build.
+# Prod deploy moves the **prod** checkout dir to the new SHA.
+# Stage twin: deploy-backend-stage / deploy-frontend-stage — own APP_DIR,
+# compose project autotests-ai-multistack-app-stage, ports +10000 (deploy/stage.env).
+# Stage CD: push develop | push main | dispatch stage|both|production-from-main.
+# Skip until vars.STAGE_APP_DIR is set. Live tests: full api/e2e vs stage
+# and vs prod (after stage e2e). Stand is -Denv=; layer is @Tag api/e2e.
+# Stage mutex: main preempts develop (cancel), develop yields if main is queued
+# or running. Not one shared cancel-in-progress group — that would let develop
+# cancel a prod promotion.
+# Roots: trigger → backend-unit-tests · openapi-sync · frontend-unit-tests · tests-harness
+#   openapi-sync: every backend-* openapi.yaml == _contract (composite, no job run:)
+#   integration-tests ← backend-unit-tests (backend module, pre-build; PR + main)
+#   sonar-backend ← backend-unit-tests + integration-tests
+#   sonar-tests ← tests-harness (skipped on backend-only lane)
+#   ui-mock-tests ← frontend-unit-tests + tests-harness (jsdom first; mock compose on the runner)
+#   ui-ci-tests ← dispatch update_ci_screenshots; local compose -Denv=ci writes screenshots/prod/ (not live prod)
+#   sonar-frontend ← frontend-unit-tests + ui-mock-tests (mock skipped ⇒ sonar still runs)
+#   build-backend ← backend-unit-tests + integration-tests + openapi-sync · build-frontend ← ui-mock-tests
+#   deploy-backend-stage / deploy-frontend-stage ← same gates; cd_stage; skip until vars.STAGE_APP_DIR
+#   api-tests-stage / e2e-tests-stage ← deploy-*-stage + tests-harness; full api / e2e vs stage stand
+#     (e2e-tests-stage also compares screenshots/stage/)
+#   deploy-backend ← build-backend + sonar-backend + e2e-tests-stage (cd_production)
+#   deploy-frontend ← build-frontend + sonar-frontend + e2e-tests-stage
+#   api-tests ← deploy-backend + tests-harness; -Denv=prod -DincludeTags=api
+#   e2e-tests ← api-tests + deploy-frontend + tests-harness; -Denv=prod -DincludeTags=e2e excludeTags=mock,screenshot
+#   publish-allure-report ← layer jobs + tests-harness + sonar-backend
+#     (gating generate; Allure QG also fails on layer-job `failure`, not skipped;
+#      soft Telegram + Pages)
+# push main|develop: trigger infers lanes from paths (tests/ ⇒ no app deploy).
+# dispatch `deploy=none|backend|frontend|tests|all` + `deploy_target=production|stage|both`.
+# PR (main|develop): no deploy; ui-mock-tests after frontend-unit-tests (mock compose profile).
 
 on:
   pull_request:
+    branches: [main, master, develop]
   push:
     branches: [main, master, develop]
   workflow_dispatch:
     inputs:
       deploy:
-        description: "SSH compose-up on the ai-first prod stand (needs vars.DEPLOY_HOST)"
+        description: "Lanes: none (tests only, no CD) · backend · frontend · tests (api/e2e vs live stand, no CD) · all. Push infers from paths."
+        type: choice
+        options: [none, backend, frontend, tests, all]
+        default: none
+      deploy_target:
+        description: "CD host: production (main: stage then prod) · stage (develop or main) · both (same chain as production from main). Push develop→stage only; push main→stage then prod."
+        type: choice
+        options: [production, stage, both]
+        default: production
+      run_integration:
+        description: "Run backend integration tests (pre-deploy)"
         type: boolean
         default: false
-      deploy_stage:
-        description: "SSH compose-up on the ai-first stage stand (needs vars.STAGE_HOST)"
+      run_api:
+        description: "Run API tests (prod: -Denv=prod -DincludeTags=api; stage: -Denv=stage -DincludeTags=api)"
         type: boolean
         default: false
+      run_mock:
+        description: "Run ui-mock tests on the runner (flows + screenshot compare)"
+        type: boolean
+        default: false
+      run_e2e:
+        description: "Run E2E tests (prod: -Denv=prod -DincludeTags=e2e; stage: -Denv=stage). Stage screenshot compare is always on."
+        type: boolean
+        default: false
+      run_screenshot:
+        description: "e2e-tests (prod): compare screenshot PNGs (Selenoid)"
+        type: boolean
+        default: false
+      run_manual:
+        description: "Run tests tagged manual against prod"
+        type: boolean
+        default: false
+      include_tags:
+        description: "e2e-tests: override -DincludeTags. Empty = run_e2e/run_screenshot selection."
+        type: string
+        default: ""
+      exclude_tags:
+        description: "e2e-tests: add -DexcludeTags independently of include_tags"
+        type: string
+        default: ""
       update_mock_screenshots:
         description: "ui-mock-tests: rewrite mock screenshot PNGs (skips compare)"
+        type: boolean
+        default: false
+      update_e2e_screenshots:
+        description: "e2e-tests: rewrite prod screenshot PNGs (skips compare)"
         type: boolean
         default: false
       update_stage_screenshots:
@@ -56,921 +131,1024 @@ on:
         type: boolean
         default: false
       update_ci_screenshots:
-        description: "compose + -Denv=ci: rewrite prod/linux screenshot PNGs (pipeline folder)"
+        description: "ui-ci-tests: rewrite screenshots/prod/ from local compose (-Denv=ci, not live prod)"
         type: boolean
         default: false
+      ALLURE_JOB_RUN_ID:
+        description: "Allure TestOps service parameter. Leave blank."
+        type: string
+        required: false
+        default: ""
+      ALLURE_USERNAME:
+        description: "Allure TestOps service parameter. Leave blank."
+        type: string
+        required: false
+        default: ""
 
 concurrency:
-  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.ref) || format('ci-{0}', github.ref) }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  # PRs: per-ref, cancel stale. main vs develop cannot share cancel-in-progress
+  # (a new develop would abort a prod promotion). Separate groups; jobs
+  # preempt-develop-cd / yield-to-main-cd enforce main priority on the stage host.
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.ref) || (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') && 'ci-cd-main' || github.ref == 'refs/heads/develop' && 'ci-cd-develop' || format('ci-{0}', github.ref) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/develop' }}
 
 permissions:
+  actions: read
   contents: read
 
 env:
   IMAGE_TAG: ${{ github.sha }}
+  # ── Active stack defaults (change here only) ─────────────────────────────
+  # Path = {zone}/{lang}/{zone}-{lang}-…. Workflow env cannot nest env.*;
+  # jobs pass module_dir via format() below. Adapters dispatch on
+  # BACKEND_LANG / FRONTEND_LANG / TESTS_LANG (GitHub does not interpolate uses:).
+  # Unknown or unwired *_LANG → STOP (never skip, never a foreign action).
+  # backend: java/kotlin → module; python/go/javascript/typescript → family.
+  # frontend: typescript/javascript → family.
+  # tests: java → module; javascript/python → family.
+  BACKEND_LANG: java
+  BACKEND_FRAMEWORK: spring
+  BACKEND_PORT: "8800"
+  FRONTEND_LANG: typescript
+  FRONTEND_FRAMEWORK: react
+  TESTS_LANG: java
+  TESTS_BUILDER: gradle
+  TESTS_FRAMEWORK: junit5
+  TESTS_REPORT: allure3
+  TESTS_UI_LIBRARY: selenide
+  APP_SLUG: autotests-ai-multistack-app
   JAVA_VERSION: "21"
   NODE_VERSION: "26"
+  PYTHON_VERSION: "3.12"
+  CHECKOUT_FETCH_DEPTH: "1"
+  GRADLE_CACHE_READ_ONLY: "false"
+  GO_VERSION: "1.25"
   CHROME_FOR_TESTING_VERSION: "148.0.7778.178"
-  BACKEND: backend-java-spring
-  BACKEND_DIR: backend/java/backend-java-spring
-  FRONTEND: frontend-typescript-react
-  FRONTEND_DIR: frontend/typescript/frontend-typescript-react
-  TESTS: tests/java/tests-java-gradle-junit5-allure3-selenide
-  TESTS_DIR: tests/java/tests-java-gradle-junit5-allure3-selenide
-  ALLURE_RESULTS_DIR: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results
-  ALLURE_REPORT_DIR: tests/java/tests-java-gradle-junit5-allure3-selenide/build/reports/allure-report/allureReport
-  ALLURE_AWESOME_DIR: tests/java/tests-java-gradle-junit5-allure3-selenide/build/reports/allure-report/allureReport/awesome
-  APP_URL: https://ai-first.autotests.ai/
-  STAGE_APP_URL: https://stage.ai-first.autotests.ai/
-  APP_HEALTH: https://ai-first.autotests.ai/api/health
-  STAGE_APP_HEALTH: https://stage.ai-first.autotests.ai/api/health
-  DEPLOY_SSH_SCRIPT: |
-    set -euo pipefail
-    APP_DIR="${DEPLOY_APP_DIR:?DEPLOY_APP_DIR is required}"
-    cd "$APP_DIR"
-    git fetch origin
-    git checkout --force "$IMAGE_TAG"
-    COMPOSE="docker compose"
-    if [ -n "${DEPLOY_COMPOSE_PROJECT:-}" ]; then
-      COMPOSE="$COMPOSE --project-name ${DEPLOY_COMPOSE_PROJECT}"
-    fi
-    if [ -n "${DEPLOY_COMPOSE_ENV_FILE:-}" ]; then
-      COMPOSE="$COMPOSE --env-file ${DEPLOY_COMPOSE_ENV_FILE}"
-    fi
-    $COMPOSE up -d --build --remove-orphans ${DEPLOY_COMPOSE_SERVICES}
-    if [ -n "${DEPLOY_HEALTH_URL:-}" ]; then
-      curl -fsS --retry 30 --retry-delay 2 --retry-all-errors "${DEPLOY_HEALTH_URL}"
-    fi
+  ALLURECTL_VERSION: "2.22.0"
+  ALLURE_JOB_RUN_ID: ${{ inputs.ALLURE_JOB_RUN_ID || '' }}
+  ALLURE_JOB_RUN_UID: ${{ github.run_id }}-${{ github.run_attempt }}
+  ALLURE_USERNAME: ${{ inputs.ALLURE_USERNAME || '' }}
+  # TestOps UI rerun passes ALLURE_JOB_RUN_ID — keep selective testplan.
+  # Ordinary PR/push leave this false so -DincludeTags / layer jobs own selection.
+  ALLURE_KEEP_TESTPLAN: ${{ github.event_name == 'workflow_dispatch' && inputs.ALLURE_JOB_RUN_ID != '' }}
+  # Launch env axes for TestOps filters (real values — not sandbox toy OS/VERSION).
+  BROWSER: Chrome
+  OS: Linux
+  ENDPOINT: prod
+  VERSION: ${{ github.sha }}
+  BRANCH: ${{ github.head_ref || github.ref_name }}
+  SONAR_SCANNER_NPM_VERSION: "5.0.0"
+  SONAR_QUALITY_GATE_TIMEOUT: "600"
+  # Host + mount; stand URLs are composed in actions from LANG + FRAMEWORK.
+  PUBLIC_HOST: ${{ vars.PUBLIC_HOST || 'autotests.ai' }}
+  STACK_MOUNT: ${{ vars.STACK_MOUNT || 'stack' }}
+  DEPLOY_MODE: ${{ vars.DEPLOY_MODE || 'ghcr' }}
+  # Stand URLs: actions compose from PUBLIC_HOST + LANG + FRAMEWORK (not listed here).
+  RUN_LABEL: "${{ github.repository }} #${{ github.run_number }}"
+  SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonar.qa.guru' }}
+  # ── Non-secret reporting defaults ───────────────────────────────────────
+  ALLURE_ENDPOINT: ${{ vars.ALLURE_ENDPOINT || 'https://allure.qa.guru' }}
+  ALLURE_PROJECT_ID: ${{ vars.ALLURE_PROJECT_ID }}
+
+  # ── Inline CI helpers (module actions eval these; do not move to composites) ─
+  # allurectl install: .github/actions/setup-allurectl. Layer commands live in module actions.
+  ALLURE_WRITE_ENVIRONMENT: |
+    write_allure_environment() {
+      if [[ -z "${ALLURE_RESULTS:-}" ]]; then
+        echo "write-allure-environment: ALLURE_RESULTS unset — skip"
+        return 0
+      fi
+      mkdir -p "$ALLURE_RESULTS"
+      props="${ALLURE_RESULTS}/environment.properties"
+      tmp="$(mktemp)"
+      for key in BROWSER OS ENDPOINT VERSION BRANCH; do
+        val="${!key:-}"
+        [[ -n "$val" ]] || continue
+        val="${val//$'\n'/ }"
+        printf '%s=%s\n' "$key" "$val" >> "$tmp"
+      done
+      if [[ ! -s "$tmp" ]]; then
+        echo "write-allure-environment: no axes set — skip"
+        rm -f "$tmp"
+        return 0
+      fi
+      mv "$tmp" "$props"
+      echo "Wrote ${props} ($(wc -l <"$props" | tr -d ' ') keys)"
+    }
+  ALLURECTL_RUN: |
+    eval "${ALLURE_WRITE_ENVIRONMENT}"
+    run_with_allurectl() {
+      if [[ "$#" -eq 0 ]]; then
+        echo "usage: run_with_allurectl <command...>" >&2
+        return 2
+      fi
+      run_then_write_env() {
+        set +e
+        "$@"
+        local code=$?
+        set -e
+        write_allure_environment || echo "warning: failed to write environment.properties (tests exit code unchanged)" >&2
+        return "$code"
+      }
+      fallback() {
+        if [[ "${GITHUB_ACTIONS:-false}" == "true" ]]; then
+          echo "::warning title=TestOps live upload unavailable::Running tests without allurectl; raw results remain available for fallback."
+        else
+          echo "TestOps live upload unavailable — running tests without allurectl"
+        fi
+        run_then_write_env "$@"
+        return $?
+      }
+      if [[ "${ALLURE_LIVE_ENABLED:-false}" != "true" ]] || ! command -v allurectl >/dev/null 2>&1; then
+        fallback "$@"
+        return $?
+      fi
+      for name in ALLURE_ENDPOINT ALLURE_TOKEN ALLURE_PROJECT_ID ALLURE_RESULTS ALLURE_LAUNCH_ID ALLURE_JOB_RUN_ID; do
+        if [[ -z "${!name:-}" ]]; then
+          echo "Missing ${name}"
+          fallback "$@"
+          return $?
+        fi
+      done
+      echo "Streaming Allure results to launch ${ALLURE_LAUNCH_ID}, job-run ${ALLURE_JOB_RUN_ID}"
+      allurectl --http-timeout 1m watch \
+        --job-run-child \
+        --continue-on-error \
+        -- \
+        bash -c '
+          set -euo pipefail
+          eval "${ALLURE_WRITE_ENVIRONMENT}"
+          if [[ "${ALLURE_KEEP_TESTPLAN:-false}" != "true" ]]; then
+            if [[ -n "${ALLURE_TESTPLAN_PATH:-}" ]]; then
+              echo "Ignoring TestOps testplan (${ALLURE_TESTPLAN_PATH}); CI layer filters own the selection"
+              rm -f "${ALLURE_TESTPLAN_PATH}"
+              unset ALLURE_TESTPLAN_PATH
+            fi
+            rm -f .allure/testplan.json
+          else
+            echo "Keeping TestOps testplan (ALLURE_KEEP_TESTPLAN=true)"
+          fi
+          set +e
+          "$@"
+          code=$?
+          set -e
+          write_allure_environment || echo "warning: failed to write environment.properties (tests exit code unchanged)" >&2
+          exit "$code"
+        ' bash "$@"
+    }
+  WRITE_SONAR_SUMMARY: |
+    {
+      echo "## ${GITHUB_JOB}"
+      echo ""
+      echo "- projectKey: \`${SONAR_PROJECT_KEY}\`"
+      echo "- host: \`${SONAR_HOST_URL}\`"
+      echo "- dashboard: ${SONAR_HOST_URL%/}/dashboard?id=${SONAR_PROJECT_KEY}"
+      echo "- commit: \`${GITHUB_SHA:0:7}\`"
+    } >> "$GITHUB_STEP_SUMMARY"
 
 jobs:
-  # Declaration order is a GitHub graph layout hint (same as the matrix clone).
-  backend-unit-tests:
+  # Same flags as dispatch `deploy`. Push infers from paths so tests/ does not
+  # rebuild the app; PR is none (no CD). Not a layer job.
+  # Shared TestOps job-run lives here too (soft: missing creds / outage disable
+  # live upload without blocking tests) so the graph is one root:
+  # trigger → backend-unit-tests (backend) / frontend-unit-tests (frontend) / tests-harness.
+  trigger:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 2
+    outputs:
+      backend: ${{ steps.set.outputs.backend }}
+      frontend: ${{ steps.set.outputs.frontend }}
+      tests: ${{ steps.set.outputs.tests }}
+      cd_production: ${{ steps.set.outputs.cd_production }}
+      cd_stage: ${{ steps.set.outputs.cd_stage }}
+      enabled: ${{ steps.context.outputs.enabled }}
+      launch_id: ${{ steps.context.outputs.launch_id }}
+      job_run_id: ${{ steps.context.outputs.job_run_id }}
+      launch_url: ${{ steps.context.outputs.launch_url }}
     steps:
-      - &checkout
+      - if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
         uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - &setup-java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-      - &setup-gradle
-        uses: gradle/actions/setup-gradle@v6
-      - name: Unit tests (Gradle + JaCoCo)
-        run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification -DexcludeTags=integration
-        working-directory: ${{ env.BACKEND_DIR }}
-      - uses: actions/upload-artifact@v7
-        if: success()
-        with:
-          name: coverage-backend
-          path: |
-            ${{ env.BACKEND_DIR }}/build/jacoco/**
-            ${{ env.BACKEND_DIR }}/build/reports/jacoco/**
-          if-no-files-found: error
-      - name: Publish raw Allure results
+          fetch-depth: 0
+      - name: Resolve lanes
+        id: set
+        uses: ./.github/actions/resolve-ci-lanes
+        env:
+          BEFORE: ${{ github.event.before }}
+          DEPLOY: ${{ github.event.inputs.deploy || '' }}
+          DEPLOY_TARGET: ${{ github.event.inputs.deploy_target || '' }}
+      - name: Create or adopt shared TestOps context
+        id: context
         if: always()
-        continue-on-error: true
-        uses: actions/upload-artifact@v7
+        uses: ./.github/actions/open-testops-context
+        env:
+          ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+          ALLURE_LAUNCH_NAME: "${{ env.APP_SLUG }} CI — ${{ env.RUN_LABEL }}"
+
+  preempt-develop-cd:
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      actions: write
+    steps:
+      - uses: actions/checkout@v7
         with:
-          name: allure-results-unit
-          path: backend/java/backend-java-spring/build/allure-results/**
-          if-no-files-found: ignore
-          retention-days: 1
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: ./.github/actions/preempt-develop-cd
+
+  # Develop must not start (or continue) if main already claimed the stage.
+  yield-to-main-cd:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      actions: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: ./.github/actions/yield-to-main-cd
+
+  # Keep the backend root first: GitHub has no explicit graph coordinates and uses
+  # declaration order as a layout hint for otherwise independent jobs.
+  # Layer jobs: checkout + `uses: ./<family>/.github/actions/<verb>` + module_dir.
+  # Language setup and ./gradlew / npm live in the module action, not here.
+  backend-unit-tests:
+    needs: trigger
+    if: always() && !cancelled()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      LAYER: unit
+      ALLURE_LIVE_ENABLED: ${{ needs.trigger.outputs.enabled }}
+      ALLURE_LAUNCH_ID: ${{ needs.trigger.outputs.launch_id }}
+      ALLURE_JOB_RUN_ID: ${{ needs.trigger.outputs.job_run_id }}
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./backend/.github/actions/unit
+        with:
+          module_dir: ${{ format('backend/{0}/backend-{0}-{1}', env.BACKEND_LANG, env.BACKEND_FRAMEWORK) }}
+
+  openapi-sync:
+    needs: trigger
+    if: always() && !cancelled()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./backend/.github/actions/openapi-sync
 
   integration-tests:
-    needs: backend-unit-tests
+    needs: [backend-unit-tests, trigger]
+    if: >-
+      always() && !cancelled() && needs.backend-unit-tests.result == 'success' && (
+        github.event_name == 'pull_request' ||
+        (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')) ||
+        (github.event_name == 'workflow_dispatch' && inputs.run_integration)
+      )
     runs-on: ubuntu-24.04
     timeout-minutes: 25
+    env:
+      LAYER: integration
+      ALLURE_LIVE_ENABLED: ${{ needs.trigger.outputs.enabled }}
+      ALLURE_LAUNCH_ID: ${{ needs.trigger.outputs.launch_id }}
+      ALLURE_JOB_RUN_ID: ${{ needs.trigger.outputs.job_run_id }}
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
     steps:
-      - *checkout
-      - *setup-java
-      - *setup-gradle
-      - name: Integration tests (Spring + Testcontainers PG)
-        env:
-          ALLURE_RESULTS: ${{ github.workspace }}/${{ env.BACKEND_DIR }}/build/allure-results
-        run: ./gradlew test -DincludeTags=integration
-        working-directory: ${{ env.BACKEND_DIR }}
-      - &upload-allure
-        name: Publish raw Allure results
-        if: always()
-        continue-on-error: true
-        uses: actions/upload-artifact@v7
+      - uses: actions/checkout@v7
         with:
-          name: allure-results-${{ github.job }}
-          path: ${{ env.BACKEND_DIR }}/build/allure-results/**
-          if-no-files-found: ignore
-          retention-days: 1
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./backend/.github/actions/integration
+        with:
+          module_dir: ${{ format('backend/{0}/backend-{0}-{1}', env.BACKEND_LANG, env.BACKEND_FRAMEWORK) }}
 
   frontend-unit-tests:
+    needs: trigger
+    if: always() && !cancelled()
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    env:
+      LAYER: component
+      ALLURE_LIVE_ENABLED: ${{ needs.trigger.outputs.enabled }}
+      ALLURE_LAUNCH_ID: ${{ needs.trigger.outputs.launch_id }}
+      ALLURE_JOB_RUN_ID: ${{ needs.trigger.outputs.job_run_id }}
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
     steps:
-      - *checkout
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: frontend/typescript/frontend-typescript-react/package-lock.json
-      - name: Install npm dependencies
-        run: npm ci
-        working-directory: ${{ env.FRONTEND_DIR }}
-      - name: Lint frontend
-        run: npm run lint --if-present
-        working-directory: ${{ env.FRONTEND_DIR }}
-      - name: Typecheck frontend
-        run: npm run typecheck --if-present
-        working-directory: ${{ env.FRONTEND_DIR }}
-      - name: Component tests (Vitest)
-        env:
-          ALLURE_RESULTS: ${{ github.workspace }}/${{ env.FRONTEND_DIR }}/allure-results
-        run: npm test -- --coverage
-        working-directory: ${{ env.FRONTEND_DIR }}
-      - uses: actions/upload-artifact@v7
-        if: success()
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./frontend/.github/actions/unit
         with:
-          name: coverage-frontend
-          path: ${{ env.FRONTEND_DIR }}/coverage/
-          if-no-files-found: error
-      - name: Publish raw Allure results
-        if: always()
-        continue-on-error: true
-        uses: actions/upload-artifact@v7
-        with:
-          name: allure-results-component
-          path: frontend/typescript/frontend-typescript-react/allure-results/**
-          if-no-files-found: ignore
-          retention-days: 1
+          module_dir: ${{ format('frontend/{0}/frontend-{0}-{1}', env.FRONTEND_LANG, env.FRONTEND_FRAMEWORK) }}
 
   tests-harness:
-    # testinfra/ (ConfigReader, CSS, Chrome pin) — gate for TESTS_DIR jobs (mock / api / e2e), not a pyramid layer.
+    needs: [trigger]
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    outputs:
+      slice: ${{ steps.harness.outputs.slice }}
+    env:
+      LAYER: harness
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
     steps:
-      - *checkout
-      - *setup-java
-      - *setup-gradle
-      - name: Harness tests
-        run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification -Denv=ci -DincludeTags=harness
-        working-directory: ${{ env.TESTS_DIR }}
-      - uses: actions/upload-artifact@v7
-        if: success()
+      - uses: actions/checkout@v7
         with:
-          name: coverage-harness
-          path: |
-            ${{ env.TESTS_DIR }}/build/jacoco/**
-            ${{ env.TESTS_DIR }}/build/reports/jacoco/**
-          if-no-files-found: error
-      - name: Publish raw Allure results
-        if: always()
-        continue-on-error: true
-        uses: actions/upload-artifact@v7
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - id: harness
+        uses: ./tests/.github/actions/harness
         with:
-          name: allure-results-harness
-          path: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
-          if-no-files-found: ignore
-          retention-days: 1
+          module_dir: ${{ env.TESTS_LANG == 'java' && format('tests/{0}/tests-{0}-{1}-{2}-{3}-{4}', env.TESTS_LANG, env.TESTS_BUILDER, env.TESTS_FRAMEWORK, env.TESTS_REPORT, env.TESTS_UI_LIBRARY) || format('tests/{0}/tests-{0}-{1}', env.TESTS_LANG, env.TESTS_UI_LIBRARY) }}
+          backend_lane: ${{ needs.trigger.outputs.backend }}
+          frontend_lane: ${{ needs.trigger.outputs.frontend }}
+          tests_lane: ${{ needs.trigger.outputs.tests }}
 
   ui-mock-tests:
-    needs: [frontend-unit-tests, tests-harness]
+    needs: [trigger, frontend-unit-tests, tests-harness]
+    if: >-
+      always() && !cancelled() &&
+      needs.frontend-unit-tests.result == 'success' &&
+      needs.tests-harness.result == 'success' && (
+        github.event_name == 'pull_request' ||
+        needs.trigger.outputs.frontend == 'true' ||
+        (github.event_name == 'workflow_dispatch' &&
+         (inputs.run_mock || inputs.update_mock_screenshots))
+      )
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: write
     env:
+      LAYER: ui-mock
       SCREENSHOT_OS: linux
       SCREENSHOT_BROWSER: chrome
+      ALLURE_LIVE_ENABLED: ${{ needs.trigger.outputs.enabled }}
+      ALLURE_LAUNCH_ID: ${{ needs.trigger.outputs.launch_id }}
+      ALLURE_JOB_RUN_ID: ${{ needs.trigger.outputs.job_run_id }}
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
     steps:
-      - *checkout
-      - *setup-java
-      - *setup-gradle
-      - name: Cache Chrome for Testing
-        continue-on-error: true
-        uses: actions/cache@v6
+      - uses: actions/checkout@v7
         with:
-          path: ${{ runner.tool_cache }}/setup-chrome
-          key: chrome-for-testing-${{ runner.os }}-${{ runner.arch }}-${{ env.CHROME_FOR_TESTING_VERSION }}
-      - name: Install pinned Chrome for Testing
-        id: setup-chrome
-        uses: browser-actions/setup-chrome@v2.1.2
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./tests/.github/actions/mock
         with:
-          chrome-version: ${{ env.CHROME_FOR_TESTING_VERSION }}
-          install-chromedriver: true
-      - name: Compose mock stand
-        run: |
-          set -euo pipefail
-          docker compose --profile mock up -d --build stand-gateway
-          curl -fsS --retry 30 --retry-delay 2 --retry-all-errors http://127.0.0.1:9911/api/health
-          curl -fsS --retry 30 --retry-delay 2 --retry-all-errors -o /dev/null http://127.0.0.1:9911/
-      - name: Mock tests
-        env:
-          ALLURE_RESULTS: ${{ github.workspace }}/${{ env.ALLURE_RESULTS_DIR }}
-          CHROME_BINARY_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
-          CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
-        run: ./gradlew test -Denv=mock -DincludeTags=mock
-        working-directory: ${{ env.TESTS_DIR }}
-      - name: Stash mock Allure results
-        if: always()
-        continue-on-error: true
-        run: |
-          set -euo pipefail
-          STASH="${{ env.TESTS_DIR }}/build/allure-results-mock-stash"
-          SRC="${{ env.TESTS_DIR }}/build/allure-results"
-          mkdir -p "$STASH"
-          if [ -d "$SRC" ]; then cp -R "$SRC/." "$STASH/"; fi
-      - name: Screenshot mock compare
-        if: >-
-          always() && !cancelled() &&
-          (github.event_name != 'workflow_dispatch' || inputs.update_mock_screenshots != true)
-        env:
-          ALLURE_RESULTS: ${{ github.workspace }}/${{ env.ALLURE_RESULTS_DIR }}
-          CHROME_BINARY_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
-          CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
-        run: SCREENSHOT_BROWSER=chrome ./gradlew test -Denv=mock -DincludeTags=screenshot
-        working-directory: ${{ env.TESTS_DIR }}
-      - name: Update mock screenshots
-        if: >-
-          always() && !cancelled() &&
-          github.event_name == 'workflow_dispatch' && inputs.update_mock_screenshots
-        env:
-          ALLURE_RESULTS: ${{ github.workspace }}/${{ env.ALLURE_RESULTS_DIR }}
-          CHROME_BINARY_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
-          CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
-        run: SCREENSHOT_BROWSER=chrome ./gradlew test -Denv=mock -DincludeTags=screenshot -DupdateScreenshots=true
-        working-directory: ${{ env.TESTS_DIR }}
-      - name: Merge Allure results
-        if: always()
-        continue-on-error: true
-        run: |
-          set -euo pipefail
-          STASH="${{ env.TESTS_DIR }}/build/allure-results-mock-stash"
-          DEST="${{ env.TESTS_DIR }}/build/allure-results"
-          mkdir -p "$DEST"
-          if [ -d "$STASH" ]; then cp -R "$STASH/." "$DEST/"; fi
-      - name: Tear down mock stand
-        if: always()
-        continue-on-error: true
-        run: docker compose --profile mock down -v --remove-orphans
-      - name: Publish raw Allure results
-        if: always()
-        continue-on-error: true
-        uses: actions/upload-artifact@v7
-        with:
-          name: allure-results-ui-mock
-          path: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
-          if-no-files-found: ignore
-          retention-days: 1
-      - name: Publish mock screenshot PNGs
-        if: >-
-          always() &&
-          github.event_name == 'workflow_dispatch' && inputs.update_mock_screenshots
-        continue-on-error: true
-        uses: actions/upload-artifact@v7
-        with:
-          name: mock-screenshot-pngs
-          path: tests/java/tests-java-gradle-junit5-allure3-selenide/src/test/resources/screenshots/
-          if-no-files-found: ignore
+          module_dir: ${{ env.TESTS_LANG == 'java' && format('tests/{0}/tests-{0}-{1}-{2}-{3}-{4}', env.TESTS_LANG, env.TESTS_BUILDER, env.TESTS_FRAMEWORK, env.TESTS_REPORT, env.TESTS_UI_LIBRARY) || format('tests/{0}/tests-{0}-{1}', env.TESTS_LANG, env.TESTS_UI_LIBRARY) }}
+          frontend_dir: ${{ format('frontend/{0}/frontend-{0}-{1}', env.FRONTEND_LANG, env.FRONTEND_FRAMEWORK) }}
+          update_screenshots: ${{ inputs.update_mock_screenshots || false }}
 
-  # Pipeline goldens live in screenshots/prod/ (ci → prod folder). Linux SSOT for
-  # local compose screenshot tests; not the live prod stand (-Denv=prod).
-  ci-screenshot-refresh:
-    if: github.event_name == 'workflow_dispatch' && inputs.update_ci_screenshots
+  ui-ci-tests:
+    needs: [trigger, backend-unit-tests, frontend-unit-tests, tests-harness]
+    if: >-
+      always() && !cancelled() &&
+      github.event_name == 'workflow_dispatch' &&
+      inputs.update_ci_screenshots &&
+      needs.backend-unit-tests.result == 'success' &&
+      needs.frontend-unit-tests.result == 'success' &&
+      needs.tests-harness.result == 'success'
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      actions: write
     env:
+      LAYER: ui-ci
       SCREENSHOT_OS: linux
       SCREENSHOT_BROWSER: chrome
+      ALLURE_LIVE_ENABLED: ${{ needs.trigger.outputs.enabled }}
+      ALLURE_LAUNCH_ID: ${{ needs.trigger.outputs.launch_id }}
+      ALLURE_JOB_RUN_ID: ${{ needs.trigger.outputs.job_run_id }}
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
     steps:
-      - *checkout
-      - *setup-java
-      - *setup-gradle
-      - name: Cache Chrome for Testing
-        continue-on-error: true
-        uses: actions/cache@v6
+      - uses: actions/checkout@v7
         with:
-          path: ${{ runner.tool_cache }}/setup-chrome
-          key: chrome-for-testing-${{ runner.os }}-${{ runner.arch }}-${{ env.CHROME_FOR_TESTING_VERSION }}
-      - name: Install pinned Chrome for Testing
-        id: setup-chrome
-        uses: browser-actions/setup-chrome@v2.1.2
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./tests/.github/actions/ci-screenshots
         with:
-          chrome-version: ${{ env.CHROME_FOR_TESTING_VERSION }}
-          install-chromedriver: true
-      - name: Compose pipeline stand
-        run: |
-          set -euo pipefail
-          docker compose up -d --build
-          curl -fsS --retry 30 --retry-delay 2 --retry-all-errors http://127.0.0.1:8800/api/health
-          curl -fsS --retry 30 --retry-delay 2 --retry-all-errors -o /dev/null http://127.0.0.1:9821/
-      - name: Update ci screenshots
-        env:
-          ALLURE_RESULTS: ${{ github.workspace }}/${{ env.ALLURE_RESULTS_DIR }}
-          CHROME_BINARY_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
-          CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
-        run: SCREENSHOT_BROWSER=chrome ./gradlew test -Denv=ci -DincludeTags=screenshot -DupdateScreenshots=true
-        working-directory: ${{ env.TESTS_DIR }}
-      - name: Tear down pipeline stand
-        if: always()
-        continue-on-error: true
-        run: docker compose down -v --remove-orphans
-      - name: Publish ci screenshot PNGs
-        if: always()
-        continue-on-error: true
-        uses: actions/upload-artifact@v7
-        with:
-          name: ci-screenshot-pngs
-          path: tests/java/tests-java-gradle-junit5-allure3-selenide/src/test/resources/screenshots/
-          if-no-files-found: ignore
+          module_dir: ${{ env.TESTS_LANG == 'java' && format('tests/{0}/tests-{0}-{1}-{2}-{3}-{4}', env.TESTS_LANG, env.TESTS_BUILDER, env.TESTS_FRAMEWORK, env.TESTS_REPORT, env.TESTS_UI_LIBRARY) || format('tests/{0}/tests-{0}-{1}', env.TESTS_LANG, env.TESTS_UI_LIBRARY) }}
+          update_screenshots: ${{ inputs.update_ci_screenshots || false }}
 
-  build-backend:
+  sonar-backend:
     needs: [backend-unit-tests, integration-tests]
     if: >-
       !cancelled() &&
       needs.backend-unit-tests.result == 'success' &&
+      (needs.integration-tests.result == 'success' || needs.integration-tests.result == 'skipped')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      # vars override. Job-level env cannot nest env.* (GHA parse); default = teaching knobs.
+      SONAR_PROJECT_KEY: ${{ vars.SONAR_BACKEND_PROJECT_KEY || 'autotests-ai-multistack-app-backend-java-spring' }}
+      CHECKOUT_FETCH_DEPTH: "0"
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+    steps:
+      - id: sonar_gate
+        run: |
+          if [[ -n "${SONAR_TOKEN:-}" ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "SONAR_TOKEN unset — skip Sonar (deploy not gated)"
+          fi
+      - if: steps.sonar_gate.outputs.run == 'true'
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - if: steps.sonar_gate.outputs.run == 'true'
+        uses: ./backend/.github/actions/sonar
+        with:
+          module_dir: ${{ format('backend/{0}/backend-{0}-{1}', env.BACKEND_LANG, env.BACKEND_FRAMEWORK) }}
+
+  # Tests-module Sonar after full harness. Backend-only is ConfigReader coverage
+  # only — skip rather than fail the tests-module gate.
+  sonar-tests:
+    needs: [tests-harness]
+    if: >-
+      !cancelled() &&
+      needs.tests-harness.result == 'success' &&
+      needs.tests-harness.outputs.slice != 'backend'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      SONAR_PROJECT_KEY: ${{ vars.SONAR_TESTS_PROJECT_KEY || 'autotests-ai-multistack-app-tests-java-gradle-junit5-allure3-selenide' }}
+      CHECKOUT_FETCH_DEPTH: "0"
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+    steps:
+      - id: sonar_gate
+        run: |
+          if [[ -n "${SONAR_TOKEN:-}" ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "SONAR_TOKEN unset — skip Sonar (deploy not gated)"
+          fi
+      - if: steps.sonar_gate.outputs.run == 'true'
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - if: steps.sonar_gate.outputs.run == 'true'
+        uses: ./tests/.github/actions/sonar
+        with:
+          module_dir: ${{ env.TESTS_LANG == 'java' && format('tests/{0}/tests-{0}-{1}-{2}-{3}-{4}', env.TESTS_LANG, env.TESTS_BUILDER, env.TESTS_FRAMEWORK, env.TESTS_REPORT, env.TESTS_UI_LIBRARY) || format('tests/{0}/tests-{0}-{1}', env.TESTS_LANG, env.TESTS_UI_LIBRARY) }}
+
+  sonar-frontend:
+    needs: [frontend-unit-tests, ui-mock-tests]
+    if: >-
+      !cancelled() &&
+      needs.frontend-unit-tests.result == 'success' &&
+      (needs.ui-mock-tests.result == 'success' || needs.ui-mock-tests.result == 'skipped')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      SONAR_PROJECT_KEY: ${{ vars.SONAR_FRONTEND_PROJECT_KEY || 'autotests-ai-multistack-app-frontend-typescript-react' }}
+      CHECKOUT_FETCH_DEPTH: "0"
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - id: sonar_gate
+        run: |
+          if [[ -n "${SONAR_TOKEN:-}" ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "SONAR_TOKEN unset — skip Sonar (deploy not gated)"
+          fi
+      - if: steps.sonar_gate.outputs.run == 'true'
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - if: steps.sonar_gate.outputs.run == 'true'
+        uses: ./frontend/.github/actions/sonar
+        with:
+          module_dir: ${{ format('frontend/{0}/frontend-{0}-{1}', env.FRONTEND_LANG, env.FRONTEND_FRAMEWORK) }}
+
+  build-backend:
+    needs: [backend-unit-tests, integration-tests, trigger, openapi-sync]
+    if: >-
+      !cancelled() &&
+      needs.backend-unit-tests.result == 'success' &&
+      needs.openapi-sync.result == 'success' &&
       (needs.integration-tests.result == 'success' || needs.integration-tests.result == 'skipped') &&
-      (
-        github.event_name == 'workflow_dispatch' ||
-        (
-          github.event_name == 'push' &&
-          (
-            github.ref == 'refs/heads/main' ||
-            github.ref == 'refs/heads/master' ||
-            github.ref == 'refs/heads/develop'
-          )
-        )
-      )
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop') &&
+      needs.trigger.outputs.backend == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+      actions: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - *checkout
-      - name: Build backend image
-        run: docker compose build ${{ env.BACKEND }}
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./backend/.github/actions/build
+        with:
+          module_dir: ${{ format('backend/{0}/backend-{0}-{1}', env.BACKEND_LANG, env.BACKEND_FRAMEWORK) }}
 
   build-frontend:
-    needs: ui-mock-tests
+    needs: [ui-mock-tests, trigger]
     if: >-
       !cancelled() &&
       needs.ui-mock-tests.result == 'success' &&
-      (
-        github.event_name == 'workflow_dispatch' ||
-        (
-          github.event_name == 'push' &&
-          (
-            github.ref == 'refs/heads/main' ||
-            github.ref == 'refs/heads/master' ||
-            github.ref == 'refs/heads/develop'
-          )
-        )
-      )
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop') &&
+      needs.trigger.outputs.frontend == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+      actions: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - *checkout
-      - name: Build frontend image
-        run: docker compose build ${{ env.FRONTEND }}
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./frontend/.github/actions/build
+        with:
+          module_dir: ${{ format('frontend/{0}/frontend-{0}-{1}', env.FRONTEND_LANG, env.FRONTEND_FRAMEWORK) }}
 
-  deploy-backend-stage:
-    needs: build-backend
+  deploy-backend:
+    needs: [build-backend, sonar-backend, trigger, e2e-tests-stage]
     if: >-
       !cancelled() &&
       needs.build-backend.result == 'success' &&
-      vars.STAGE_HOST != '' &&
-      vars.STAGE_APP_DIR != '' &&
-      (
-        (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
-        (github.event_name == 'workflow_dispatch' && inputs.deploy_stage)
-      )
+      (needs.sonar-backend.result == 'success' || needs.sonar-backend.result == 'skipped') &&
+      needs.trigger.outputs.cd_production == 'true' &&
+      (needs.e2e-tests-stage.result == 'success' ||
+       (needs.e2e-tests-stage.result == 'skipped' && vars.STAGE_APP_DIR == ''))
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment:
-      name: ${{ vars.STAGE_ENVIRONMENT || 'ai-first-stage' }}
-      url: ${{ env.STAGE_APP_URL }}
+      name: ${{ vars.DEPLOY_ENVIRONMENT || 'multistack-production' }}
+      url: ${{ vars.APP_URL || format('https://{0}/{1}/backend-{2}-{3}/frontend-{4}-{5}/', env.PUBLIC_HOST, env.STACK_MOUNT, env.BACKEND_LANG, env.BACKEND_FRAMEWORK, env.FRONTEND_LANG, env.FRONTEND_FRAMEWORK) }}
     concurrency:
-      group: deploy-ai-first-stage
+      group: deploy-autotests-ai-multistack-app
       cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
     env:
-      DEPLOY_STEP_NAME: Deploy backend to stage
-      DEPLOY_APP_DIR: ${{ vars.STAGE_APP_DIR }}
-      DEPLOY_COMPOSE_ENV_FILE: ${{ vars.STAGE_COMPOSE_ENV_FILE }}
-      DEPLOY_COMPOSE_PROJECT: ${{ vars.STAGE_COMPOSE_PROJECT }}
-      DEPLOY_COMPOSE_SERVICES: postgres backend-java-spring
-      DEPLOY_HEALTH_URL: ${{ vars.STAGE_HEALTH_URL || 'http://127.0.0.1:8800/api/health' }}
+      DEPLOY_APP_DIR: ${{ vars.DEPLOY_APP_DIR || '/home/autotests_ai_multistack/autotests-ai-multistack-app' }}
+      DEPLOY_COMPOSE_PROJECT: ${{ vars.DEPLOY_COMPOSE_PROJECT || 'autotests-ai-multistack-app' }}
+      DEPLOY_COMPOSE_ENV_FILE: ${{ vars.DEPLOY_COMPOSE_ENV_FILE || '' }}
+      DEPLOY_HEALTH_URL: ${{ vars.DEPLOY_HEALTH_URL || 'http://127.0.0.1:8800/api/health' }}
+      DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: ${{ env.DEPLOY_STEP_NAME }}
-        uses: appleboy/ssh-action@v1.2.5
+      - uses: actions/checkout@v7
         with:
-          host: ${{ vars.STAGE_HOST }}
-          username: ${{ vars.STAGE_USER || vars.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          command_timeout: 20m
-          envs: IMAGE_TAG,DEPLOY_APP_DIR,DEPLOY_COMPOSE_ENV_FILE,DEPLOY_COMPOSE_PROJECT,DEPLOY_COMPOSE_SERVICES,DEPLOY_HEALTH_URL
-          script: ${{ env.DEPLOY_SSH_SCRIPT }}
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./backend/.github/actions/deploy
+        with:
+          module_dir: ${{ format('backend/{0}/backend-{0}-{1}', env.BACKEND_LANG, env.BACKEND_FRAMEWORK) }}
+          stand: prod
 
-  deploy-frontend-stage:
-    needs: build-frontend
+  # FE deploy after teaching build + sonar. One FRONTEND — no sibling matrix.
+  deploy-frontend:
+    needs: [build-frontend, sonar-frontend, trigger, e2e-tests-stage]
     if: >-
       !cancelled() &&
       needs.build-frontend.result == 'success' &&
-      vars.STAGE_HOST != '' &&
-      vars.STAGE_APP_DIR != '' &&
-      (
-        (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
-        (github.event_name == 'workflow_dispatch' && inputs.deploy_stage)
-      )
+      (needs.sonar-frontend.result == 'success' || needs.sonar-frontend.result == 'skipped') &&
+      needs.trigger.outputs.cd_production == 'true' &&
+      (needs.e2e-tests-stage.result == 'success' ||
+       (needs.e2e-tests-stage.result == 'skipped' && vars.STAGE_APP_DIR == ''))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment:
-      name: ${{ vars.STAGE_ENVIRONMENT || 'ai-first-stage' }}
-      url: ${{ env.STAGE_APP_URL }}
+      name: ${{ vars.DEPLOY_ENVIRONMENT || 'multistack-production' }}
+      url: ${{ vars.APP_URL || format('https://{0}/{1}/backend-{2}-{3}/frontend-{4}-{5}/', env.PUBLIC_HOST, env.STACK_MOUNT, env.BACKEND_LANG, env.BACKEND_FRAMEWORK, env.FRONTEND_LANG, env.FRONTEND_FRAMEWORK) }}
     concurrency:
-      group: deploy-ai-first-stage
+      group: deploy-autotests-ai-multistack-app
       cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
     env:
-      DEPLOY_STEP_NAME: Deploy frontend to stage
-      DEPLOY_APP_DIR: ${{ vars.STAGE_APP_DIR }}
-      DEPLOY_COMPOSE_ENV_FILE: ${{ vars.STAGE_COMPOSE_ENV_FILE }}
-      DEPLOY_COMPOSE_PROJECT: ${{ vars.STAGE_COMPOSE_PROJECT }}
-      DEPLOY_COMPOSE_SERVICES: frontend-typescript-react stand-gateway-ci
-      DEPLOY_HEALTH_URL: ""
+      DEPLOY_APP_DIR: ${{ vars.DEPLOY_APP_DIR || '/home/autotests_ai_multistack/autotests-ai-multistack-app' }}
+      DEPLOY_COMPOSE_PROJECT: ${{ vars.DEPLOY_COMPOSE_PROJECT || 'autotests-ai-multistack-app' }}
+      DEPLOY_COMPOSE_ENV_FILE: ${{ vars.DEPLOY_COMPOSE_ENV_FILE || '' }}
+      DEPLOY_HEALTH_URL: ${{ vars.DEPLOY_FRONTEND_HEALTH_URL || '' }}
+      DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: ${{ env.DEPLOY_STEP_NAME }}
-        uses: appleboy/ssh-action@v1.2.5
+      - uses: actions/checkout@v7
         with:
-          host: ${{ vars.STAGE_HOST }}
-          username: ${{ vars.STAGE_USER || vars.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          command_timeout: 20m
-          envs: IMAGE_TAG,DEPLOY_APP_DIR,DEPLOY_COMPOSE_ENV_FILE,DEPLOY_COMPOSE_PROJECT,DEPLOY_COMPOSE_SERVICES,DEPLOY_HEALTH_URL
-          script: ${{ env.DEPLOY_SSH_SCRIPT }}
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./frontend/.github/actions/deploy
+        with:
+          module_dir: ${{ format('frontend/{0}/frontend-{0}-{1}', env.FRONTEND_LANG, env.FRONTEND_FRAMEWORK) }}
+          stand: prod
 
-  api-tests-stage:
-    needs: [deploy-backend-stage, tests-harness]
-    if: always() && !cancelled() && needs.deploy-backend-stage.result == 'success' && needs.tests-harness.result == 'success'
+  # Stage twin — push develop (WIP) or push main / dispatch production|both (promotion).
+  # Own checkout. Skip until repo var STAGE_APP_DIR is set.
+  deploy-backend-stage:
+    needs: [build-backend, sonar-backend, trigger, preempt-develop-cd, yield-to-main-cd]
+    if: >-
+      always() && !cancelled() &&
+      needs.build-backend.result == 'success' &&
+      (needs.sonar-backend.result == 'success' || needs.sonar-backend.result == 'skipped') &&
+      vars.STAGE_APP_DIR != '' &&
+      needs.trigger.outputs.cd_stage == 'true' &&
+      (needs.preempt-develop-cd.result == 'success' || needs.preempt-develop-cd.result == 'skipped') &&
+      (needs.yield-to-main-cd.result == 'success' || needs.yield-to-main-cd.result == 'skipped')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    environment:
+      name: ${{ vars.STAGE_ENVIRONMENT || 'multistack-stage' }}
+      url: ${{ vars.STAGE_APP_URL || format('https://stage.{0}/{1}/backend-{2}-{3}/frontend-{4}-{5}/', env.PUBLIC_HOST, env.STACK_MOUNT, env.BACKEND_LANG, env.BACKEND_FRAMEWORK, env.FRONTEND_LANG, env.FRONTEND_FRAMEWORK) }}
+    concurrency:
+      group: deploy-autotests-ai-multistack-app-stage
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    env:
+      DEPLOY_APP_DIR: ${{ vars.STAGE_APP_DIR }}
+      DEPLOY_COMPOSE_PROJECT: ${{ vars.STAGE_COMPOSE_PROJECT || 'autotests-ai-multistack-app-stage' }}
+      DEPLOY_COMPOSE_ENV_FILE: ${{ vars.STAGE_COMPOSE_ENV_FILE || 'deploy/stage.env' }}
+      DEPLOY_HEALTH_URL: ${{ vars.STAGE_HEALTH_URL || 'http://127.0.0.1:18800/api/health' }}
+      DEPLOY_HOST: ${{ vars.STAGE_HOST || vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ vars.STAGE_USER || vars.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Wait for stage API
-        run: curl -fsS --retry 30 --retry-delay 2 --retry-all-errors "${{ env.STAGE_APP_HEALTH }}"
-      - *checkout
-      - *setup-java
-      - *setup-gradle
-      - name: API tests vs stage stand
-        env:
-          ALLURE_RESULTS: ${{ github.workspace }}/${{ env.ALLURE_RESULTS_DIR }}
-        run: ./gradlew test -Denv=stage -DincludeTags=api
-        working-directory: ${{ env.TESTS_DIR }}
-      - name: Publish raw Allure results
-        if: always()
-        continue-on-error: true
-        uses: actions/upload-artifact@v7
+      - uses: actions/checkout@v7
         with:
-          name: allure-results-api-stage
-          path: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
-          if-no-files-found: ignore
-          retention-days: 1
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./backend/.github/actions/deploy
+        with:
+          module_dir: ${{ format('backend/{0}/backend-{0}-{1}', env.BACKEND_LANG, env.BACKEND_FRAMEWORK) }}
+          stand: stage
+
+  deploy-frontend-stage:
+    needs: [build-frontend, sonar-frontend, trigger, preempt-develop-cd, yield-to-main-cd]
+    if: >-
+      always() && !cancelled() &&
+      needs.build-frontend.result == 'success' &&
+      (needs.sonar-frontend.result == 'success' || needs.sonar-frontend.result == 'skipped') &&
+      vars.STAGE_APP_DIR != '' &&
+      needs.trigger.outputs.cd_stage == 'true' &&
+      (needs.preempt-develop-cd.result == 'success' || needs.preempt-develop-cd.result == 'skipped') &&
+      (needs.yield-to-main-cd.result == 'success' || needs.yield-to-main-cd.result == 'skipped')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: ${{ vars.STAGE_ENVIRONMENT || 'multistack-stage' }}
+      url: ${{ vars.STAGE_APP_URL || format('https://stage.{0}/{1}/backend-{2}-{3}/frontend-{4}-{5}/', env.PUBLIC_HOST, env.STACK_MOUNT, env.BACKEND_LANG, env.BACKEND_FRAMEWORK, env.FRONTEND_LANG, env.FRONTEND_FRAMEWORK) }}
+    concurrency:
+      group: deploy-autotests-ai-multistack-app-stage
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    env:
+      DEPLOY_APP_DIR: ${{ vars.STAGE_APP_DIR }}
+      DEPLOY_COMPOSE_PROJECT: ${{ vars.STAGE_COMPOSE_PROJECT || 'autotests-ai-multistack-app-stage' }}
+      DEPLOY_COMPOSE_ENV_FILE: ${{ vars.STAGE_COMPOSE_ENV_FILE || 'deploy/stage.env' }}
+      DEPLOY_HEALTH_URL: ${{ vars.DEPLOY_FRONTEND_HEALTH_URL || '' }}
+      DEPLOY_HOST: ${{ vars.STAGE_HOST || vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ vars.STAGE_USER || vars.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./frontend/.github/actions/deploy
+        with:
+          module_dir: ${{ format('frontend/{0}/frontend-{0}-{1}', env.FRONTEND_LANG, env.FRONTEND_FRAMEWORK) }}
+          stand: stage
+
+  # Rest Assured against deployed backend — starts as soon as that lane finishes (FE may
+  # still be deploying). Dispatch can run api without a backend deploy this run.
+  api-tests:
+    needs: [deploy-backend, trigger, tests-harness]
+    if: >-
+      always() && !cancelled() &&
+      needs.tests-harness.result == 'success' &&
+      needs.trigger.outputs.cd_production == 'true' && (
+        (needs.trigger.outputs.backend == 'true' &&
+         needs.deploy-backend.result == 'success') ||
+        (needs.trigger.outputs.tests == 'true' &&
+         (needs.deploy-backend.result == 'success' ||
+          needs.deploy-backend.result == 'skipped')) ||
+        (github.event_name == 'workflow_dispatch' && inputs.run_api &&
+         (needs.deploy-backend.result == 'success' ||
+          needs.deploy-backend.result == 'skipped') &&
+         (needs.trigger.outputs.backend != 'true' ||
+          needs.deploy-backend.result == 'success'))
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      LAYER: api
+      ALLURE_LIVE_ENABLED: ${{ needs.trigger.outputs.enabled }}
+      ALLURE_LAUNCH_ID: ${{ needs.trigger.outputs.launch_id }}
+      ALLURE_JOB_RUN_ID: ${{ needs.trigger.outputs.job_run_id }}
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./tests/.github/actions/api
+        with:
+          module_dir: ${{ env.TESTS_LANG == 'java' && format('tests/{0}/tests-{0}-{1}-{2}-{3}-{4}', env.TESTS_LANG, env.TESTS_BUILDER, env.TESTS_FRAMEWORK, env.TESTS_REPORT, env.TESTS_UI_LIBRARY) || format('tests/{0}/tests-{0}-{1}', env.TESTS_LANG, env.TESTS_UI_LIBRARY) }}
+          stand: prod
+
+  e2e-tests:
+    needs: [api-tests, deploy-frontend, trigger, tests-harness]
+    if: >-
+      always() && !cancelled() &&
+      needs.tests-harness.result == 'success' &&
+      needs.trigger.outputs.cd_production == 'true' && (
+        (needs.deploy-frontend.result == 'success' ||
+         needs.deploy-frontend.result == 'skipped') && (
+          (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
+           (needs.api-tests.result == 'success' ||
+            (needs.api-tests.result == 'skipped' &&
+             needs.deploy-frontend.result == 'success'))) ||
+          (needs.trigger.outputs.tests == 'true' &&
+           github.event_name == 'workflow_dispatch' &&
+           (needs.api-tests.result == 'success' ||
+            needs.api-tests.result == 'skipped')) ||
+          (github.event_name == 'workflow_dispatch' &&
+           (inputs.run_e2e ||
+            inputs.run_screenshot ||
+            inputs.update_e2e_screenshots ||
+            inputs.include_tags != '' ||
+            inputs.exclude_tags != '') &&
+           (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') &&
+           (needs.trigger.outputs.frontend != 'true' ||
+            needs.deploy-frontend.result == 'success'))
+        )
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      LAYER: e2e
+      SCREENSHOT_OS: linux
+      SCREENSHOT_BROWSER: chrome
+      ALLURE_LIVE_ENABLED: ${{ needs.trigger.outputs.enabled }}
+      ALLURE_LAUNCH_ID: ${{ needs.trigger.outputs.launch_id }}
+      ALLURE_JOB_RUN_ID: ${{ needs.trigger.outputs.job_run_id }}
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      SELENOID_WEBDRIVER_URL: ${{ secrets.SELENOID_WEBDRIVER_URL }}
+      SELENOID_PLAYWRIGHT_URL: ${{ secrets.SELENOID_PLAYWRIGHT_URL }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./tests/.github/actions/e2e
+        with:
+          module_dir: ${{ env.TESTS_LANG == 'java' && format('tests/{0}/tests-{0}-{1}-{2}-{3}-{4}', env.TESTS_LANG, env.TESTS_BUILDER, env.TESTS_FRAMEWORK, env.TESTS_REPORT, env.TESTS_UI_LIBRARY) || format('tests/{0}/tests-{0}-{1}', env.TESTS_LANG, env.TESTS_UI_LIBRARY) }}
+          stand: prod
+          include_tags: ${{ inputs.include_tags || '' }}
+          exclude_tags: ${{ inputs.exclude_tags || '' }}
+          run_e2e: ${{ inputs.run_e2e || false }}
+          run_screenshot: ${{ inputs.run_screenshot || false }}
+          update_screenshots: ${{ inputs.update_e2e_screenshots || false }}
+
+  api-tests-stage:
+    needs: [deploy-backend-stage, trigger, tests-harness]
+    if: >-
+      always() && !cancelled() &&
+      needs.tests-harness.result == 'success' &&
+      needs.trigger.outputs.cd_stage == 'true' && (
+        (needs.trigger.outputs.backend == 'true' &&
+         needs.deploy-backend-stage.result == 'success') ||
+        (needs.trigger.outputs.tests == 'true' &&
+         (needs.deploy-backend-stage.result == 'success' ||
+          needs.deploy-backend-stage.result == 'skipped')) ||
+        (github.event_name == 'workflow_dispatch' && inputs.run_api &&
+         (needs.deploy-backend-stage.result == 'success' ||
+          needs.deploy-backend-stage.result == 'skipped') &&
+         (needs.trigger.outputs.backend != 'true' ||
+          needs.deploy-backend-stage.result == 'success'))
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      LAYER: api
+      ENDPOINT: stage
+      PUBLIC_HOST: ${{ vars.STAGE_PUBLIC_HOST || format('stage.{0}', env.PUBLIC_HOST) }}
+      ALLURE_LIVE_ENABLED: ${{ needs.trigger.outputs.enabled }}
+      ALLURE_LAUNCH_ID: ${{ needs.trigger.outputs.launch_id }}
+      ALLURE_JOB_RUN_ID: ${{ needs.trigger.outputs.job_run_id }}
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./tests/.github/actions/api
+        with:
+          module_dir: ${{ env.TESTS_LANG == 'java' && format('tests/{0}/tests-{0}-{1}-{2}-{3}-{4}', env.TESTS_LANG, env.TESTS_BUILDER, env.TESTS_FRAMEWORK, env.TESTS_REPORT, env.TESTS_UI_LIBRARY) || format('tests/{0}/tests-{0}-{1}', env.TESTS_LANG, env.TESTS_UI_LIBRARY) }}
+          stand: stage
 
   e2e-tests-stage:
-    needs: [deploy-frontend-stage, api-tests-stage, tests-harness]
-    if: always() && !cancelled() && needs.tests-harness.result == 'success' && needs.deploy-frontend-stage.result == 'success' && needs.api-tests-stage.result == 'success'
+    needs: [api-tests-stage, deploy-frontend-stage, trigger, tests-harness]
+    if: >-
+      always() && !cancelled() &&
+      needs.tests-harness.result == 'success' &&
+      needs.trigger.outputs.cd_stage == 'true' && (
+        (needs.deploy-frontend-stage.result == 'success' ||
+         needs.deploy-frontend-stage.result == 'skipped') && (
+          (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
+           (needs.api-tests-stage.result == 'success' ||
+            (needs.api-tests-stage.result == 'skipped' &&
+             needs.deploy-frontend-stage.result == 'success'))) ||
+          (needs.trigger.outputs.tests == 'true' &&
+           github.event_name == 'workflow_dispatch' &&
+           (needs.api-tests-stage.result == 'success' ||
+            needs.api-tests-stage.result == 'skipped')) ||
+          (github.event_name == 'workflow_dispatch' &&
+           (inputs.run_e2e ||
+            inputs.run_screenshot ||
+            inputs.update_stage_screenshots ||
+            inputs.include_tags != '' ||
+            inputs.exclude_tags != '') &&
+           (needs.api-tests-stage.result == 'success' || needs.api-tests-stage.result == 'skipped') &&
+           (needs.trigger.outputs.frontend != 'true' ||
+            needs.deploy-frontend-stage.result == 'success'))
+        )
+      )
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
+      LAYER: e2e
+      ENDPOINT: stage
+      PUBLIC_HOST: ${{ vars.STAGE_PUBLIC_HOST || format('stage.{0}', env.PUBLIC_HOST) }}
       SCREENSHOT_OS: linux
       SCREENSHOT_BROWSER: chrome
+      ALLURE_LIVE_ENABLED: ${{ needs.trigger.outputs.enabled }}
+      ALLURE_LAUNCH_ID: ${{ needs.trigger.outputs.launch_id }}
+      ALLURE_JOB_RUN_ID: ${{ needs.trigger.outputs.job_run_id }}
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      SELENOID_WEBDRIVER_URL: ${{ secrets.SELENOID_WEBDRIVER_URL }}
+      SELENOID_PLAYWRIGHT_URL: ${{ secrets.SELENOID_PLAYWRIGHT_URL }}
     steps:
-      - *checkout
-      - *setup-java
-      - *setup-gradle
-      - name: E2E tests vs stage stand (Selenoid)
-        env:
-          ALLURE_RESULTS: ${{ github.workspace }}/${{ env.ALLURE_RESULTS_DIR }}
-          SELENOID_REMOTE_URL: ${{ secrets.SELENOID_REMOTE_URL }}
-        run: |
-          set -euo pipefail
-          if [ -z "${SELENOID_REMOTE_URL:-}" ]; then
-            echo "secrets.SELENOID_REMOTE_URL is required for stage e2e" >&2
-            exit 1
-          fi
-          ./gradlew test -Denv=stage -DincludeTags=e2e -DexcludeTags=screenshot,mock \
-            -DremoteUrl="${SELENOID_REMOTE_URL}"
-        working-directory: ${{ env.TESTS_DIR }}
-      - name: Stash e2e Allure results
-        if: always()
-        continue-on-error: true
-        run: |
-          set -euo pipefail
-          STASH="${{ env.TESTS_DIR }}/build/allure-results-e2e-stage-stash"
-          SRC="${{ env.TESTS_DIR }}/build/allure-results"
-          mkdir -p "$STASH"
-          if [ -d "$SRC" ]; then cp -R "$SRC/." "$STASH/"; fi
-      - name: Screenshot stage compare
-        if: >-
-          always() && !cancelled() &&
-          (github.event_name != 'workflow_dispatch' || inputs.update_stage_screenshots != true)
-        env:
-          ALLURE_RESULTS: ${{ github.workspace }}/${{ env.ALLURE_RESULTS_DIR }}
-          SELENOID_REMOTE_URL: ${{ secrets.SELENOID_REMOTE_URL }}
-        run: |
-          set -euo pipefail
-          if [ -z "${SELENOID_REMOTE_URL:-}" ]; then
-            echo "secrets.SELENOID_REMOTE_URL is required for stage screenshots" >&2
-            exit 1
-          fi
-          SCREENSHOT_BROWSER=chrome ./gradlew test -Denv=stage -DincludeTags=screenshot \
-            -DremoteUrl="${SELENOID_REMOTE_URL}"
-        working-directory: ${{ env.TESTS_DIR }}
-      - name: Update stage screenshots
-        if: >-
-          always() && !cancelled() &&
-          github.event_name == 'workflow_dispatch' && inputs.update_stage_screenshots
-        env:
-          ALLURE_RESULTS: ${{ github.workspace }}/${{ env.ALLURE_RESULTS_DIR }}
-          SELENOID_REMOTE_URL: ${{ secrets.SELENOID_REMOTE_URL }}
-        run: |
-          set -euo pipefail
-          if [ -z "${SELENOID_REMOTE_URL:-}" ]; then
-            echo "secrets.SELENOID_REMOTE_URL is required for stage screenshots" >&2
-            exit 1
-          fi
-          SCREENSHOT_BROWSER=chrome ./gradlew test -Denv=stage -DincludeTags=screenshot \
-            -DupdateScreenshots=true -DremoteUrl="${SELENOID_REMOTE_URL}"
-        working-directory: ${{ env.TESTS_DIR }}
-      - name: Merge Allure results
-        if: always()
-        continue-on-error: true
-        run: |
-          set -euo pipefail
-          STASH="${{ env.TESTS_DIR }}/build/allure-results-e2e-stage-stash"
-          DEST="${{ env.TESTS_DIR }}/build/allure-results"
-          mkdir -p "$DEST"
-          if [ -d "$STASH" ]; then cp -R "$STASH/." "$DEST/"; fi
-      - name: Publish stage screenshot PNGs
-        if: >-
-          always() &&
-          github.event_name == 'workflow_dispatch' && inputs.update_stage_screenshots
-        continue-on-error: true
-        uses: actions/upload-artifact@v7
+      - uses: actions/checkout@v7
         with:
-          name: stage-screenshot-pngs
-          path: tests/java/tests-java-gradle-junit5-allure3-selenide/src/test/resources/screenshots/
-          if-no-files-found: ignore
-      - name: Publish raw Allure results
-        if: always()
-        continue-on-error: true
-        uses: actions/upload-artifact@v7
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./tests/.github/actions/e2e
         with:
-          name: allure-results-e2e-stage
-          path: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
-          if-no-files-found: ignore
-          retention-days: 1
+          module_dir: ${{ env.TESTS_LANG == 'java' && format('tests/{0}/tests-{0}-{1}-{2}-{3}-{4}', env.TESTS_LANG, env.TESTS_BUILDER, env.TESTS_FRAMEWORK, env.TESTS_REPORT, env.TESTS_UI_LIBRARY) || format('tests/{0}/tests-{0}-{1}', env.TESTS_LANG, env.TESTS_UI_LIBRARY) }}
+          stand: stage
+          include_tags: ${{ inputs.include_tags || '' }}
+          exclude_tags: ${{ inputs.exclude_tags || '' }}
+          run_e2e: ${{ inputs.run_e2e || false }}
+          run_screenshot: ${{ inputs.run_screenshot || false }}
+          update_screenshots: ${{ inputs.update_stage_screenshots || false }}
 
-  deploy-backend:
-    needs: [build-backend, deploy-backend-stage, deploy-frontend-stage, e2e-tests-stage]
+  manual-tests:
+    needs: [e2e-tests, trigger]
     if: >-
       always() && !cancelled() &&
-      needs.build-backend.result == 'success' &&
-      vars.DEPLOY_HOST != '' &&
-      vars.DEPLOY_APP_DIR != '' &&
-      (
-        (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
-        (
-          github.event_name == 'push' ||
-          (github.event_name == 'workflow_dispatch' && inputs.deploy)
-        )
-      ) &&
-      (
-        needs.e2e-tests-stage.result == 'success' ||
-        (
-          needs.deploy-backend-stage.result == 'skipped' &&
-          needs.deploy-frontend-stage.result == 'skipped'
-        )
-      )
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    environment:
-      name: ${{ vars.DEPLOY_ENVIRONMENT || 'ai-first-production' }}
-      url: ${{ env.APP_URL }}
-    concurrency:
-      group: deploy-ai-first-prod
-      cancel-in-progress: false
-    env:
-      DEPLOY_STEP_NAME: Deploy backend to stand
-      DEPLOY_APP_DIR: ${{ vars.DEPLOY_APP_DIR }}
-      DEPLOY_COMPOSE_ENV_FILE: ${{ vars.DEPLOY_COMPOSE_ENV_FILE }}
-      DEPLOY_COMPOSE_PROJECT: ${{ vars.DEPLOY_COMPOSE_PROJECT }}
-      DEPLOY_COMPOSE_SERVICES: postgres backend-java-spring
-      DEPLOY_HEALTH_URL: ${{ vars.DEPLOY_HEALTH_URL || 'http://127.0.0.1:8800/api/health' }}
-    steps:
-      - name: ${{ env.DEPLOY_STEP_NAME }}
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ vars.DEPLOY_HOST }}
-          username: ${{ vars.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          command_timeout: 20m
-          envs: IMAGE_TAG,DEPLOY_APP_DIR,DEPLOY_COMPOSE_ENV_FILE,DEPLOY_COMPOSE_PROJECT,DEPLOY_COMPOSE_SERVICES,DEPLOY_HEALTH_URL
-          script: ${{ env.DEPLOY_SSH_SCRIPT }}
-
-  deploy-frontend:
-    needs: [build-frontend, deploy-backend-stage, deploy-frontend-stage, e2e-tests-stage]
-    if: >-
-      always() && !cancelled() &&
-      needs.build-frontend.result == 'success' &&
-      vars.DEPLOY_HOST != '' &&
-      vars.DEPLOY_APP_DIR != '' &&
-      (
-        (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
-        (
-          github.event_name == 'push' ||
-          (github.event_name == 'workflow_dispatch' && inputs.deploy)
-        )
-      ) &&
-      (
-        needs.e2e-tests-stage.result == 'success' ||
-        (
-          needs.deploy-backend-stage.result == 'skipped' &&
-          needs.deploy-frontend-stage.result == 'skipped'
-        )
-      )
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    environment:
-      name: ${{ vars.DEPLOY_ENVIRONMENT || 'ai-first-production' }}
-      url: ${{ env.APP_URL }}
-    concurrency:
-      group: deploy-ai-first-prod
-      cancel-in-progress: false
-    env:
-      DEPLOY_STEP_NAME: Deploy frontend to stand
-      DEPLOY_APP_DIR: ${{ vars.DEPLOY_APP_DIR }}
-      DEPLOY_COMPOSE_ENV_FILE: ${{ vars.DEPLOY_COMPOSE_ENV_FILE }}
-      DEPLOY_COMPOSE_PROJECT: ${{ vars.DEPLOY_COMPOSE_PROJECT }}
-      DEPLOY_COMPOSE_SERVICES: frontend-typescript-react stand-gateway-ci
-      DEPLOY_HEALTH_URL: ""
-    steps:
-      - name: ${{ env.DEPLOY_STEP_NAME }}
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ vars.DEPLOY_HOST }}
-          username: ${{ vars.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          command_timeout: 20m
-          envs: IMAGE_TAG,DEPLOY_APP_DIR,DEPLOY_COMPOSE_ENV_FILE,DEPLOY_COMPOSE_PROJECT,DEPLOY_COMPOSE_SERVICES,DEPLOY_HEALTH_URL
-          script: ${{ env.DEPLOY_SSH_SCRIPT }}
-
-  api-tests:
-    needs: [deploy-backend, tests-harness]
-    if: always() && !cancelled() && needs.deploy-backend.result == 'success' && needs.tests-harness.result == 'success'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - name: Wait for live API
-        run: curl -fsS --retry 30 --retry-delay 2 --retry-all-errors "${{ env.APP_HEALTH }}"
-      - *checkout
-      - *setup-java
-      - *setup-gradle
-      - name: API smoke vs prod stand
-        env:
-          ALLURE_RESULTS: ${{ github.workspace }}/${{ env.ALLURE_RESULTS_DIR }}
-        run: ./gradlew test -Denv=prod -DincludeTags='api & smoke'
-        working-directory: ${{ env.TESTS_DIR }}
-      - name: Publish raw Allure results
-        if: always()
-        continue-on-error: true
-        uses: actions/upload-artifact@v7
-        with:
-          name: allure-results-api
-          path: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
-          if-no-files-found: ignore
-          retention-days: 1
-
-  e2e-tests:
-    needs: [api-tests, deploy-frontend, tests-harness]
-    if: always() && !cancelled() && needs.tests-harness.result == 'success' && needs.deploy-frontend.result == 'success' && needs.api-tests.result == 'success'
+      github.event_name == 'workflow_dispatch' && inputs.run_manual &&
+      (needs.e2e-tests.result == 'success' || needs.e2e-tests.result == 'skipped')
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    env:
+      LAYER: manual
+      ALLURE_LIVE_ENABLED: ${{ needs.trigger.outputs.enabled }}
+      ALLURE_LAUNCH_ID: ${{ needs.trigger.outputs.launch_id }}
+      ALLURE_JOB_RUN_ID: ${{ needs.trigger.outputs.job_run_id }}
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+      SELENOID_WEBDRIVER_URL: ${{ secrets.SELENOID_WEBDRIVER_URL }}
+      SELENOID_PLAYWRIGHT_URL: ${{ secrets.SELENOID_PLAYWRIGHT_URL }}
     steps:
-      - *checkout
-      - *setup-java
-      - *setup-gradle
-      - name: E2E smoke vs prod stand (Selenoid)
-        env:
-          ALLURE_RESULTS: ${{ github.workspace }}/${{ env.ALLURE_RESULTS_DIR }}
-          SELENOID_REMOTE_URL: ${{ secrets.SELENOID_REMOTE_URL }}
-        run: |
-          set -euo pipefail
-          if [ -z "${SELENOID_REMOTE_URL:-}" ]; then
-            echo "secrets.SELENOID_REMOTE_URL is required for prod e2e" >&2
-            exit 1
-          fi
-          ./gradlew test -Denv=prod -DincludeTags='e2e & smoke' -DexcludeTags=screenshot,mock \
-            -DremoteUrl="${SELENOID_REMOTE_URL}"
-        working-directory: ${{ env.TESTS_DIR }}
-      - name: Publish raw Allure results
-        if: always()
-        continue-on-error: true
-        uses: actions/upload-artifact@v7
+      - uses: actions/checkout@v7
         with:
-          name: allure-results-e2e
-          path: tests/java/tests-java-gradle-junit5-allure3-selenide/build/allure-results/**
-          if-no-files-found: ignore
-          retention-days: 1
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - uses: ./tests/.github/actions/manual
+        with:
+          module_dir: ${{ env.TESTS_LANG == 'java' && format('tests/{0}/tests-{0}-{1}-{2}-{3}-{4}', env.TESTS_LANG, env.TESTS_BUILDER, env.TESTS_FRAMEWORK, env.TESTS_REPORT, env.TESTS_UI_LIBRARY) || format('tests/{0}/tests-{0}-{1}', env.TESTS_LANG, env.TESTS_UI_LIBRARY) }}
+          stand: prod
 
-  # One Allure box on the graph (same teaching fold as the matrix clone).
-  # Generate is the gate. Pages is continue-on-error and skipped on PRs.
-  # contents: write must be a literal — GitHub rejects expressions in jobs.<id>.permissions.
+  # Gating Allure generate after e2e. Lock pins + npm ci live here (not extra
+  # graph boxes). Pages push + Telegram are soft after generate; live Pages
+  # deploy is the following job (deploy-pages@v5).
   publish-allure-report:
+    name: publish-allure-report
     needs:
       - backend-unit-tests
-      - integration-tests
-      - tests-harness
       - frontend-unit-tests
+      - tests-harness
       - ui-mock-tests
-      - build-backend
-      - build-frontend
-      - deploy-backend-stage
-      - deploy-frontend-stage
-      - api-tests-stage
-      - e2e-tests-stage
-      - deploy-backend
-      - deploy-frontend
+      - ui-ci-tests
+      - integration-tests
       - api-tests
       - e2e-tests
+      - api-tests-stage
+      - e2e-tests-stage
+      - manual-tests
+      - trigger
+      - sonar-backend
     if: always() && !cancelled()
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     permissions:
       contents: write
       actions: read
+      pages: write
     env:
       REPORT_ID: ${{ github.run_id }}
       GH_PAGES_BASE: ${{ vars.GH_PAGES_BASE || format('https://{0}.github.io/{1}', github.repository_owner, github.event.repository.name) }}
+      ALLURE_LIVE_ENABLED: ${{ vars.ALLURE_PROJECT_ID != '' }}
+      NPM_CI_IF: "true"
+      ALLURE_TOKEN: ${{ secrets.ALLURE_TOKEN }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN || secrets.TELEGRAM_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ vars.TELEGRAM_CHAT_ID || '-1004381150566' }}
+      TELEGRAM_TOPIC_ID: ${{ vars.TELEGRAM_TOPIC_ID || secrets.TELEGRAM_TOPIC_ID || '3' }}
+    outputs:
+      testops_launch_url: ${{ steps.publish.outputs.launch_url }}
+      pages_artifact: ${{ steps.publish.outputs.pages_artifact }}
     steps:
-      - *checkout
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: tests/java/tests-java-gradle-junit5-allure3-selenide/package-lock.json
-
-      - name: package.json pins must match package-lock.json
-        working-directory: ${{ env.TESTS_DIR }}
-        run: node scripts/check-package-lock.mjs
-
-      - name: Load Allure history
-        continue-on-error: true
-        uses: actions/checkout@v7
+          persist-credentials: false
+          fetch-depth: ${{ env.CHECKOUT_FETCH_DEPTH }}
+      - id: publish
+        uses: ./.github/actions/publish-allure-report
         with:
-          ref: gh-pages
-          path: gh-pages
-          sparse-checkout: history.jsonl
-          sparse-checkout-cone-mode: false
-
-      - name: Install npm dependencies
-        run: npm ci
-        working-directory: ${{ env.TESTS_DIR }}
-
-      - name: Download merged raw Allure results
-        id: results
-        continue-on-error: true
-        uses: actions/download-artifact@v8
-        with:
-          pattern: allure-results-*
-          path: ${{ env.ALLURE_RESULTS_DIR }}
-          merge-multiple: true
-
-      - name: Verify merged Allure results
-        id: merged-results
-        if: steps.results.outcome == 'success'
+          tests_dir: ${{ env.TESTS_LANG == 'java' && format('tests/{0}/tests-{0}-{1}-{2}-{3}-{4}', env.TESTS_LANG, env.TESTS_BUILDER, env.TESTS_FRAMEWORK, env.TESTS_REPORT, env.TESTS_UI_LIBRARY) || format('tests/{0}/tests-{0}-{1}', env.TESTS_LANG, env.TESTS_UI_LIBRARY) }}
         env:
-          ALLURE_RESULTS: ${{ env.ALLURE_RESULTS_DIR }}
-        run: |
-          if [ -n "$(find "${ALLURE_RESULTS}" -type f 2>/dev/null | head -1)" ]; then
-            echo "has_results=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_results=false" >> "$GITHUB_OUTPUT"
-            echo "No merged Allure results — skip publish"
-          fi
+          CI_LAYER_JOBS: ${{ toJSON(needs) }}
+          TRIGGER_ENABLED: ${{ needs.trigger.outputs.enabled }}
+          TRIGGER_JOB_RUN_ID: ${{ needs.trigger.outputs.job_run_id }}
+          TRIGGER_LAUNCH_URL: ${{ needs.trigger.outputs.launch_url }}
 
-      - name: Restore Allure history
-        if: steps.merged-results.outputs.has_results == 'true'
-        run: |
-          if [ -f gh-pages/history.jsonl ]; then
-            cp gh-pages/history.jsonl "${{ env.TESTS_DIR }}/history.jsonl"
-          elif [ -f "${{ env.TESTS_DIR }}/history.jsonl" ]; then
-            echo "Using checked-in history.jsonl"
-          fi
-
-      - name: Write executor.json
-        if: steps.merged-results.outputs.has_results == 'true'
-        env:
-          ALLURE_RESULTS: ${{ env.ALLURE_RESULTS_DIR }}
-        run: |
-          mkdir -p "${ALLURE_RESULTS}"
-          cat > "${ALLURE_RESULTS}/executor.json" <<EOF
-          {
-            "reportName": "Run #${{ github.run_number }}",
-            "buildOrder": ${{ github.run_number }},
-            "reportUrl": "${GH_PAGES_BASE}/reports/${REPORT_ID}/awesome/index.html",
-            "buildUrl": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          }
-          EOF
-
-      - name: Allure quality gate + report
-        if: always() && steps.merged-results.outputs.has_results == 'true'
-        id: allure-report
-        working-directory: ${{ env.TESTS_DIR }}
-        run: |
-          set +e
-          npx --no-install allure quality-gate build/allure-results --config allurerc.mjs
-          echo "QUALITY_GATE_EXIT=$?" >> "$GITHUB_ENV"
-          npx --no-install allure generate build/allure-results \
-            -o build/reports/allure-report/allureReport \
-            --config allurerc.mjs
-          REPORT_EXIT=$?
-          if [ "${REPORT_EXIT}" -eq 0 ]; then
-            node allure/tests-table-from-run.mjs \
-              --results build/allure-results \
-              --history history.jsonl \
-              --report build/reports/allure-report/allureReport
-          fi
-          set -e
-          exit "${REPORT_EXIT}"
-
-      - name: Publish merged Allure report artifact
-        if: always() && steps.allure-report.outcome == 'success'
+  # Live GitHub Pages. Soft: a 503 must not fail generate. Retry: pages.yml.
+  deploy-github-pages:
+    name: deploy-github-pages
+    needs: publish-allure-report
+    if: >-
+      always() && !cancelled() &&
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop') &&
+      needs.publish-allure-report.outputs.pages_artifact == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
         continue-on-error: true
-        uses: actions/upload-artifact@v7
-        with:
-          name: allure-report-ci
-          path: ${{ env.ALLURE_REPORT_DIR }}/
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Prepare GitHub Pages
-        id: pages-prepare
-        if: >-
-          always() &&
-          github.event_name != 'pull_request' &&
-          steps.allure-report.outcome == 'success'
-        continue-on-error: true
-        env:
-          ALLURE_REPORT_ROOT: ${{ env.ALLURE_REPORT_DIR }}
-          ALLURE_AWESOME: ${{ env.ALLURE_AWESOME_DIR }}
-        run: |
-          if [ ! -f "${ALLURE_AWESOME}/index.html" ]; then
-            echo "No ${ALLURE_AWESOME}/index.html — skip GitHub Pages"
-            exit 0
-          fi
-          mkdir -p pages/reports/${REPORT_ID}
-          cp -r "${ALLURE_REPORT_ROOT}/." "pages/reports/${REPORT_ID}/"
-          rm -rf pages/reports/latest
-          cp -r "pages/reports/${REPORT_ID}" pages/reports/latest
-          if [ -f "${{ env.TESTS_DIR }}/history.jsonl" ]; then
-            cp "${{ env.TESTS_DIR }}/history.jsonl" pages/history.jsonl
-          fi
-          echo "${REPORT_ID}" > pages/latest-run-id.txt
-          mkdir -p pages/docs
-          cp -R docs/handouts pages/docs/handouts
-          cp docs/github-pages/index.html pages/index.html
-          touch pages/.nojekyll
-
-      - name: Deploy Allure report to GitHub Pages
-        id: gh-pages-deploy
-        if: >-
-          always() &&
-          github.event_name != 'pull_request' &&
-          steps.allure-report.outcome == 'success' &&
-          steps.pages-prepare.outcome == 'success' &&
-          hashFiles('pages/reports/**/awesome/index.html') != ''
-        continue-on-error: true
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: pages
-          enable_jekyll: false
-          keep_files: false
-
-      - name: Job summary
-        if: always()
-        env:
-          ALLURE_AWESOME: ${{ env.ALLURE_AWESOME_DIR }}
-          PAGES_OUTCOME: ${{ steps.gh-pages-deploy.outcome }}
-        run: |
-          {
-            echo "## publish-allure-report"
-            echo ""
-            echo "- [GitHub Actions run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-            if [ -f "${ALLURE_AWESOME}/index.html" ]; then
-              echo "- Allure report artifact: allure-report-ci"
-            fi
-            if [ "${PAGES_OUTCOME}" = "success" ]; then
-              echo "- [GitHub Pages](${GH_PAGES_BASE}/)"
-              echo "- [Handouts](${GH_PAGES_BASE}/docs/handouts/index.html)"
-              echo "- [Allure report](${GH_PAGES_BASE}/reports/latest/awesome/index.html)"
-            elif [ "${{ github.event_name }}" != "pull_request" ]; then
-              echo "- GitHub Pages not deployed"
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
+        uses: actions/deploy-pages@v5
