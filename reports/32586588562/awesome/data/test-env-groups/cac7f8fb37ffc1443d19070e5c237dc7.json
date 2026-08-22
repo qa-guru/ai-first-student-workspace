@@ -1,1 +1,0 @@
-{"id":"cac7f8fb37ffc1443d19070e5c237dc7","fullName":"dev.multistack.app.repository.NoteRepositoryTest.findByUserReturnsSavedNote","name":"findByUser returns the saved note with generated id","status":"passed","testResultsByEnv":{"default":"91a34d5bc48be56f935a6de0bba8635d"}}
