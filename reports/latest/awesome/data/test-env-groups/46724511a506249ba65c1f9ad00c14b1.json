@@ -1,0 +1,1 @@
+{"id":"46724511a506249ba65c1f9ad00c14b1","fullName":"dev.multistack.app.integration.NoteLifecycleIntegrationTest.noteLifecycleRoundTrip","name":"PUT create 201 → GET 200 → PUT replace 200 → PATCH merge 200 → DELETE 204 → GET 404","status":"passed","testResultsByEnv":{"default":"a503aa078b0eaa3fd77409317994b968"}}

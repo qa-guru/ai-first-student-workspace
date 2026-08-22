@@ -1,1 +1,0 @@
-{"id":"44479ff1158710d386c4a54b47e747c1","fullName":"dev.multistack.app.controller.OpenApiControllerTest.docsServesSwaggerUi","name":"GET /api/docs is Swagger UI pointed at ./openapi.yaml","status":"passed","testResultsByEnv":{"default":"a210f456a5970d2e0f147dd5e6ebaee7"}}
