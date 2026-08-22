@@ -1,0 +1,1 @@
+{"id":"859e1399da13e19823b2d003d9f525fe","fullName":"frontend-typescript-react:src/test/lib/note.test.ts#note client falls back when the error body has no string message","name":"falls back when the error body has no string message","status":"passed","testResultsByEnv":{"default":"b0ff178d859b0bba8cc26bdb31ec89a5"}}
