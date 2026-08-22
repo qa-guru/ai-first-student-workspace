@@ -46,4 +46,36 @@ describe('note client', () => {
     await expect(putNote('t', 'body')).rejects.toThrow('Note store down');
     await expect(deleteNote()).rejects.toThrow('Note store down');
   });
+
+  it('falls back when the error body has no string message', async () => {
+    localStorage.setItem(AUTH_TOKEN_KEY, 'token');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => ({ message: 503 }),
+      }),
+    );
+
+    await expect(fetchNote()).rejects.toThrow('Request failed');
+    await expect(putNote('t', 'body')).rejects.toThrow('Request failed');
+    await expect(deleteNote()).rejects.toThrow('Request failed');
+  });
+
+  it('falls back when the error body is not JSON', async () => {
+    localStorage.setItem(AUTH_TOKEN_KEY, 'token');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: async () => {
+          throw new Error('not json');
+        },
+      }),
+    );
+
+    await expect(fetchNote()).rejects.toThrow('Request failed');
+  });
 });

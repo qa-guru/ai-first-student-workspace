@@ -657,5 +657,85 @@ describe('HomePage', () => {
 
       expect(screen.queryByTestId('welcome-message')).not.toBeInTheDocument();
     });
+
+    it('shows the fallback when GET /api/note rejects a non-Error', async () => {
+      stubDefaultApis((url, init) => {
+        if (url.includes('/api/note') && noteMethod(init) === 'GET') {
+          return Promise.reject('note-get-down');
+        }
+        return null;
+      });
+
+      await renderLoggedInNotePanel();
+
+      await waitFor(() =>
+        expect(screen.getByTestId('note-error')).toHaveTextContent('Could not save the note'),
+      );
+    });
+
+    it('shows the fallback when save rejects a non-Error', async () => {
+      const user = userEvent.setup();
+      stubDefaultApis((url, init) => {
+        if (url.includes('/api/note') && init?.method === 'PUT') {
+          return Promise.reject('note-put-down');
+        }
+        return null;
+      });
+
+      await renderLoggedInNotePanel();
+      await user.type(screen.getByTestId('note-input'), 'Write the PUT path');
+      await user.click(screen.getByTestId('note-save-button'));
+
+      await waitFor(() =>
+        expect(screen.getByTestId('note-error')).toHaveTextContent('Could not save the note'),
+      );
+    });
+
+    it('shows the fallback when delete rejects a non-Error', async () => {
+      const user = userEvent.setup();
+      stubDefaultApis((url, init) => {
+        const method = noteMethod(init);
+        if (!url.includes('/api/note')) {
+          return null;
+        }
+        if (method === 'GET') {
+          return jsonResponse({ id: 7, title: 'Ship', text: 'Write the PUT path' });
+        }
+        if (method === 'DELETE') {
+          return Promise.reject('note-delete-down');
+        }
+        return null;
+      });
+
+      await renderLoggedInNotePanel();
+      await waitFor(() => expect(screen.getByTestId('note-delete-button')).toBeEnabled());
+      await user.click(screen.getByTestId('note-delete-button'));
+
+      await waitFor(() =>
+        expect(screen.getByTestId('note-error')).toHaveTextContent('Could not delete the note'),
+      );
+    });
+
+    it('does not apply a late GET /api/note failure after unmount', async () => {
+      localStorage.setItem('authToken', 'valid-token');
+      let rejectNote!: (reason?: unknown) => void;
+      const notePromise = new Promise<Response>((_resolve, reject) => {
+        rejectNote = reject;
+      });
+      stubDefaultApis((url, init) => {
+        if (url.includes('/api/note') && noteMethod(init) === 'GET') {
+          return notePromise;
+        }
+        return null;
+      });
+
+      const { unmount } = renderHome();
+      expect(await screen.findByTestId('welcome-message')).toHaveTextContent('Welcome, user1!');
+      unmount();
+      rejectNote(new Error('late fail'));
+      await Promise.resolve();
+
+      expect(screen.queryByTestId('note-error')).not.toBeInTheDocument();
+    });
   });
 });
