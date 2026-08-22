@@ -1,0 +1,1 @@
+{"id":"dd52f9c18078b5b4584332bb7b0ea9ec","fullName":"dev.multistack.app.service.NoteServiceTest.getMissingNoteIs404","name":"get returns 404 when the user has no note","status":"passed","testResultsByEnv":{"default":"c4ba266ede943ed6911efa2355f8b1a6"}}
