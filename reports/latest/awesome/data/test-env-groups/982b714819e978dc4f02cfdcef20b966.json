@@ -1,0 +1,1 @@
+{"id":"982b714819e978dc4f02cfdcef20b966","fullName":"tests.api.NoteApiTests.noteWithoutTokenReturns401","name":"GET/PUT/PATCH/DELETE /api/note without a token returns 401","status":"passed","testResultsByEnv":{"default":"e9f878319aa7a1d9c3aecb5bf93a6056"}}

@@ -1,1 +1,0 @@
-{"id":"87e0c22f3d15998ac75c46bf5a305e9e","fullName":"tests.testinfra.ConfigReaderTest.resolveBaseUrlKeepsTrailingSlash","name":"resolveBaseUrl keeps trailing slash on baseUrl","status":"passed","testResultsByEnv":{"default":"0bcf35f6db5b5b187cc54f03e185ee25"}}
