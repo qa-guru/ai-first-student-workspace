@@ -5,5 +5,5 @@ Same job names as `ci.yml` (`backend-unit-tests` · `integration-tests` ·
 `uses:`.
 
 `backend/.github/actions/<verb>` dispatches here when `BACKEND_LANG=python`.
-Set `BACKEND_FRAMEWORK` to `flask` / `fastapi` / `django`. Flattened takeaway
-leaf paths are resolved by `.github/actions/resolve-module-dir`.
+Set `BACKEND_FRAMEWORK` to `flask` / `fastapi` / `django`.
+Nested `module_dir` is resolved by `.github/actions/resolve-module-dir`.
