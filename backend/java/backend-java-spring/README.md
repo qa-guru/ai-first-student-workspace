@@ -23,8 +23,7 @@ behavioral tests; entity plumbing is executed by the persistence slice, not by r
 
 ## Contract
 
-`service` in `/api/health` equals this module id and must match `health_service` in
-[`deploy/matrix.yaml`](../../../deploy/matrix.yaml).
+`service` in `/api/health` equals this module id (`spring.application.name` в `src/main/resources/application.yml`). Контракт: [`_contract/openapi.yaml`](../../../_contract/openapi.yaml).
 
 | Method | Path | Auth | Success | Body |
 |--------|------|------|---------|------|
@@ -42,7 +41,7 @@ behavioral tests; entity plumbing is executed by the persistence slice, not by r
 | PATCH | `/api/note` | Bearer | 200 | `Content-Type: application/merge-patch+json` |
 | DELETE | `/api/note` | Bearer | 204 | empty; 404 если нет |
 
-Синглтон `/api/note` — ADR [`006`](../docs/adr/006-one-note-not-list.md); глаголы — RAG [`crud-http`](../docs/agent-skills/rag/crud-http.md). Модуль API-only — ADR [`007`](../docs/adr/007-backend-api-only.md). Новый ресурс: skill `be-add-resource`.
+Синглтон `/api/note` — ADR [`006`](../../../docs/adr/006-one-note-not-list.md); глаголы — RAG [`crud-http`](../../../docs/agent-skills/rag/crud-http.md). Модуль API-only — ADR [`007`](../../../docs/adr/007-backend-api-only.md). Новый ресурс: skill `be-add-resource`.
 
 Logout is **stateless by design**: it never invalidates the JWT server-side — the token keeps
 verifying until it expires or the account is deleted. `DELETE /api/auth/me` is the authenticated
@@ -73,4 +72,4 @@ dev.multistack.app/
 **API-only.** Controllers expose `/api/**`; UI lives in `frontend/*` nginx containers.
 CSRF is disabled by design — auth is stateless Bearer JWT, no ambient cookie credential.
 
-Kotlin twin: [`../../kotlin/backend-kotlin-spring/`](../../kotlin/backend-kotlin-spring/).
+Kotlin / другие стеки матрицы — в monorepo курса, не в этом takeaway.

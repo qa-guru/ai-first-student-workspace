@@ -11,7 +11,7 @@ cd tests/java/tests-java-gradle-junit5-allure3-selenide
 ./gradlew test -Denv=ci -DincludeTags=e2e -DexcludeTags=screenshot,mock
 ```
 
-Нет `testE2e` и `@Tag("smoke")`. Срез = `@Tag("e2e")`. App: compose + gateway `:9821`, health `:8800`.
+Нет Gradle-task `testE2e`. Срез = `@Tag("e2e")` минус screenshot/mock. `@Tag("smoke")` на узких методах — prod slice, не ярус. App: compose + gateway `:9821`, health `:8800`.
 
 ## Ограничения
 

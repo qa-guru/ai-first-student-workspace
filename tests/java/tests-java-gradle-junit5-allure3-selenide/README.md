@@ -2,16 +2,16 @@
 
 Gradle · JUnit 5 · Allure 3 · Selenide · Rest Assured.
 
-Canonical Java automation module. CI: clone [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml) (same file in the takeaway).
+Canonical Java automation module. CI: [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml).
 
 **Not** backend unit tests → `backend/java/backend-java-spring/src/test/java/`.  
 **Not** RTL → `frontend/typescript/frontend-typescript-react/src/test/`.
 
-Other language stacks live in the matrix catalog, not this ethalon tree: [MATRIX-CATALOG.md](../../../../../../docs/testing/MATRIX-CATALOG.md).
+Другие языковые стеки матрицы — в monorepo курса, не в этом takeaway.
 
 ## Layers
 
-One task `test`; the layer is a tag filter, the stand is `-Denv` ([pyramid-map.yaml](../../../_contract/pyramid-map.yaml)).
+Один task `test`; ярус — tag filter, стенд — `-Denv` (RAG [`test-layers`](../../../docs/agent-skills/rag/test-layers.md), [`cfg-stands`](../../../docs/agent-skills/rag/cfg-stands.md)).
 
 | Layer | Command | Notes |
 |-------|---------|--------|

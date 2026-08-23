@@ -63,7 +63,7 @@ the API fails — a token the server has already rejected must never keep the UI
 - Exact strings: validation messages (`lib/messages.ts`), `Welcome, {username}!`,
   `→ {status} | service: {service}`, form titles `Login Form` / `Register`.
 
-Note panel (ADR [`006`](../docs/adr/006-one-note-not-list.md)): Save = **PUT** `/api/note`; PATCH с UI нет. Новый UI: skill `fe-add-ui`, ADR [`008`](../docs/adr/008-frontend-ds-not-fork.md).
+Note panel (ADR [`006`](../../../docs/adr/006-one-note-not-list.md)): Save = **PUT** `/api/note`; PATCH с UI нет. Новый UI: skill `fe-add-ui`, ADR [`008`](../../../docs/adr/008-frontend-ds-not-fork.md).
 
 ## Header
 
