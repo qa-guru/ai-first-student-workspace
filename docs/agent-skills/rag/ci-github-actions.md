@@ -42,7 +42,7 @@ Pipeline api/e2e (`-Denv=ci`) — локально (`qa-run-stand`), не job CI
 | `STAGE_HOST` / `STAGE_USER` / `STAGE_APP_DIR` | SSH stage |
 | `STAGE_COMPOSE_PROJECT` / `STAGE_COMPOSE_ENV_FILE` | stage twin |
 | `secrets.DEPLOY_SSH_KEY` | ключ |
-| `secrets.SELENOID_REMOTE_URL` | хаб с кредами — prod/stage e2e |
+| `secrets.SELENOID_WEBDRIVER_URL` | хаб с кредами — prod/stage e2e |
 
 В этом файле **нет** TestOps / Telegram / Sonar — это школьный контур позже, не копировать из матрицы.
 
