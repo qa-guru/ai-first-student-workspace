@@ -41,7 +41,7 @@ Jenkins `{login}-app-tests` / GHA — тот же `-Denv` и tags, что в job
 
 ```bash
 ./gradlew test -Denv=stage -DincludeTags=e2e -DexcludeTags=screenshot,mock \
-  -DremoteUrl="$SELENOID_REMOTE_URL"
+  -DremoteUrl="$SELENOID_WEBDRIVER_URL"
 ```
 
 URL: [https://stage.ai-first.autotests.ai/](https://stage.ai-first.autotests.ai/). Нет DNS/стенда → не подменять URL в Java.
@@ -50,7 +50,7 @@ URL: [https://stage.ai-first.autotests.ai/](https://stage.ai-first.autotests.ai/
 
 ```bash
 ./gradlew test -Denv=prod -DincludeTags=e2e -DexcludeTags=screenshot,mock \
-  -DremoteUrl="$SELENOID_REMOTE_URL"
+  -DremoteUrl="$SELENOID_WEBDRIVER_URL"
 ```
 
 Нет URL хаба → стоп. Узкий срез, не full pyramid.

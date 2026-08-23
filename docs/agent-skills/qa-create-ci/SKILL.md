@@ -18,14 +18,14 @@ RAG: `ci-github-actions` **или** `ci-jenkins` + `cfg-stands`.
 ## Do not
 
 - Писать токены в YAML / job XML
-- Копировать matrix `ci.yml` или канон-job школы без смены SCM
+- Копировать канон-job школы без смены SCM
 - Просить Jenkins Administer
 - В том же task чинить красный прогон (`qa-fix-ci`)
 
 ## GitHub Actions
 
 1. Fork takeaway, Settings → Actions → Allow.
-2. Если `.github/workflows/ci.yml` есть — только включить. Нет — взять из takeaway, не с матрицы.
+2. Если `.github/workflows/ci.yml` есть — только включить. Нет — взять из takeaway (это **тот же** файл, что у clone). Не плодить второй workflow.
 3. Vars `DEPLOY_*` — только если человек поднимает **свой** хост (`qa-setup-host`). Витрина курса уже на [ai-first.autotests.ai](https://ai-first.autotests.ai/) — студенту её vars не копировать.
 
 ## Jenkins
