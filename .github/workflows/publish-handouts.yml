@@ -10,10 +10,22 @@ on:
       - docs/handouts/**
       - docs/github-pages/**
       - .github/workflows/publish-handouts.yml
+  pull_request:
+    paths:
+      - docs/handouts/**
+      - .github/workflows/publish-handouts.yml
   workflow_dispatch:
 
 jobs:
+  check-lab-wrap:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 docs/handouts/check-lab-wrap.py
+
   pages:
+    needs: check-lab-wrap
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 5

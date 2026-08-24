@@ -52,16 +52,17 @@
 
 ## Login · живой опыт (абляция)
 
-Тот же промпт, две вкладки. Ctx (открытый код) всегда в кадре — не путать со слоем.
+Тот же промпт, две вкладки. Context (открытый код) всегда в кадре — не путать со слоем.
 
 - [30 · микропроект](index.html#30-login-micro) — `LoginTests` + `LoginPage`
 - [31 · полный стек](index.html#31-login-full) — канон `shouldShowErrorWhenPasswordIsWrong`
 - [32 · полный − 1](index.html#32-login-minus-one) — у каждого слоя своя галлюцинация
 - [33 · пары](index.html#33-login-pairs) — 2 из 4
 - [34 · одиночки / пусто](index.html#34-login-singles) — 1 из 4 и «учебный интернет»
-- [35 · ctx ≠ слой](index.html#35-login-context) — открытый канон кормит копипаст
+- [35 · context ≠ слой](index.html#35-login-context) — открытый канон кормит копипаст
+- [36 · лаборатория](36-login-lab.html) — тумблеры Skill / Rule / RAG / ADR / Context, сразу видно код галлюцинации (не A4, не PDF). Java в колонках — `white-space: pre` + скролл, не `pre-wrap` (`check-lab-wrap.py`).
 
-Перед live закомментируй `shouldShowErrorWhenPasswordIsWrong`. New Agent после смены слоёв. На занятии достаточно полного стека + «ничего»; пары — с листа.
+Перед live закомментируй `shouldShowErrorWhenPasswordIsWrong`. New Agent после смены слоёв. На занятии достаточно полного стека + «ничего»; пары — с листа. Лаборатория 36 — на проектор: выключаешь слой, краснеют строки.
 
 ## Наращивание
 
@@ -73,6 +74,10 @@
 ## Домашка
 
 - [40 · ДЗ · main → develop](index.html#40-homework) — два промпта, блок «Сдача ДЗ»; тексты: [HOMEWORK.md](../../HOMEWORK.md)
+
+## Словарь
+
+- [50 · словарь AI-стека](50-glossary.html) — у каждого термина два пояснения: общее и на каноне `LoginTests#shouldShowErrorWhenPasswordIsWrong` (не A4, не PDF). Live: […/docs/handouts/50-glossary.html](https://qa-guru.github.io/ai-first-student-workspace/docs/handouts/50-glossary.html).
 
 ## Печать
 

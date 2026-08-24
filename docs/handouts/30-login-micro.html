@@ -17,7 +17,7 @@
     </div>
     <div class="hd__meta">
       <div class="chips">
-        <span class="chip chip--ctx chip--on chip--dashed">Ctx</span>
+        <span class="chip chip--ctx chip--on">Context</span>
         <span class="chip chip--skill">Skill</span>
         <span class="chip chip--rule">Rule</span>
         <span class="chip chip--rag">RAG</span>
@@ -28,7 +28,7 @@
   </header>
 
   <h1 class="h1">Две вкладки и один промпт</h1>
-  <p class="lead">Сцена занятия: открыты <strong>LoginTests</strong> (успешный логин) и <strong>LoginPage</strong>. TestBase и Gradle — не третья вкладка, агент их «видит» сам. Это <strong>project context</strong>, не слой. Слои включаем со следующего листа.</p>
+  <p class="lead">Сцена занятия: открыты <strong>LoginTests</strong> (успешный логин) и <strong>LoginPage</strong>. <strong>HomePage</strong> (Welcome), TestBase и Gradle — не третья вкладка, агент их «видит» сам. Это <strong>project context</strong>, не слой. Слои включаем со следующего листа.</p>
 
   <div class="body">
     <p class="prompt">Добавь автотест на неуспешный логин с неправильным паролем</p>
@@ -53,38 +53,38 @@ class LoginTests extends TestBase {
       <section class="panel">
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">вкладка 2 · LoginPage.java</p></div>
         <div class="panel__body">
-          <pre class="pre--sm">openPage()              → LoginPage     open("/login")
-fillAndSubmitForm(u, p) → HomePage      // только happy path
-typeUsername / typePassword → this
-submitExpectingError()  → this          // ошибка на форме
-shouldHaveErrorMessage(msg) → this
+          <pre class="pre--sm">loginInput    = $("[data-testid='login-input']");
+passwordInput = $("[data-testid='password-input']");
+submitButton  = $("[data-testid='submit-button']");
 
-локаторы только здесь, data-testid:
-  login-input · password-input
-  submit-button · error-message</pre>
+LoginPage openPage()
+HomePage  fillAndSubmitForm(String username, String password)  // только happy path
+LoginPage typeUsername(String username)
+LoginPage typePassword(String password)</pre>
         </div>
       </section>
     </div>
 
     <div class="grid-2" style="display:grid;gap:8px">
       <section class="panel">
+        <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">условно · HomePage.java</p></div>
+        <div class="panel__body">
+          <pre class="pre--sm">welcomeMessage = $("[data-testid='welcome-message']");
+
+HomePage shouldHaveWelcomeMessage(String message)
+  // fillAndSubmitForm возвращает сюда</pre>
+        </div>
+      </section>
+      <section class="panel">
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">условно · TestBase.java</p></div>
         <div class="panel__body">
           <pre class="pre--sm">protected LoginPage loginPage = new LoginPage();
 Configuration.baseUrl = ConfigReader.resolveWebBaseUrl();
 // chrome / remote — из config
-// не new ChromeDriver() в тесте</pre>
-        </div>
-      </section>
-      <section class="panel">
-        <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">условно · build.gradle + прогон</p></div>
-        <div class="panel__body">
-          <pre class="pre--sm">test {
-  useJUnitPlatform { includeTags из -DincludeTags }
-  systemProperty 'env', testEnv          // -Denv=
-}
-// task testE2e — нет
+// не new ChromeDriver() в тесте
 
+test { includeTags из -DincludeTags; -Denv= }
+// task testE2e — нет
 ./gradlew test -Denv=ci -DincludeTags=e2e \
   -Dtest=LoginTests#&lt;method&gt;</pre>
         </div>
@@ -95,7 +95,7 @@ Configuration.baseUrl = ConfigReader.resolveWebBaseUrl();
   </div>
 
   <footer class="ft">
-    <span>Ctx всегда включён · пунктир = не слой</span>
+    <span>Context всегда включён · не слой</span>
     <span>Канон happy path: <code>LoginTests#shouldLoginWithValidCredentials</code></span>
     <span>живой опыт · 1/6</span>
   </footer>

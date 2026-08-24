@@ -30,7 +30,8 @@
   <a class="sheet-link" href="#32-login-minus-one"><b>32 · полный − 1</b><span>своя галлюцинация у слоя</span></a>
   <a class="sheet-link" href="#33-login-pairs"><b>33 · пары</b><span>2 из 4 · дыры складываются</span></a>
   <a class="sheet-link" href="#34-login-singles"><b>34 · одиночки / пусто</b><span>1 из 4 · учебный интернет</span></a>
-  <a class="sheet-link" href="#35-login-context"><b>35 · ctx ≠ слой</b><span>пятая опция · сцена, не скрипт</span></a>
+  <a class="sheet-link" href="#35-login-context"><b>35 · context ≠ слой</b><span>пятая опция · сцена, не скрипт</span></a>
+  <a class="sheet-link" href="36-login-lab.html"><b>36 · лаборатория</b><span>тумблеры слоёв · галлюцинация live</span></a>
   <h2 class="sec">Наращивание</h2>
   <a class="sheet-link" href="#10-stack-skills"><b>10 · skills</b><span>есть маршрут, нет тормозов</span></a>
   <a class="sheet-link" href="#11-stack-skills-rules"><b>11 · skills + rules</b><span>занятие 2 · канон</span></a>
@@ -38,8 +39,11 @@
   <a class="sheet-link" href="#13-stack-skills-rules-rag-adr"><b>13 · полный стек</b><span>занятие 4</span></a>
   <h2 class="sec">Домашка</h2>
   <a class="sheet-link" href="#40-homework"><b>40 · ДЗ · main → develop</b><span>два промпта · блок сдачи</span></a>
+  <h2 class="sec">Словарь</h2>
 
-  <p style="margin-top:24px"><a href="README.md">README.md</a> · пак: <a href="../agent-skills/PACK.md">docs/agent-skills/PACK.md</a></p>
+  <a class="sheet-link" href="50-glossary.html"><b>50 · словарь AI-стека</b><span>термин · общее · на LoginTests</span></a>
+
+  <p style="margin-top:24px"><a href="README.md">README.md</a> · пак: <a href="../agent-skills/PACK.md">docs/agent-skills/PACK.md</a> · словарь: <a href="50-glossary.html">50-glossary.html</a></p>
 </main>
 
 <article class="sheet" id="00-overview">
@@ -134,7 +138,7 @@ ADR   → screenshot — slice, не @Layer  (005)</pre>
       <section class="card card--muted">
         <h2 class="sec">Как агент это видит</h2>
         <p>В IDE <strong>rule включается сам</strong>. Skill читают фразой «прочитай SKILL.md». RAG — 2–4 пути, которые назвал skill. ADR — цитата «почему так».</p>
-        <p class="tiny muted" style="margin-top:6px">Наращивание: skill → + rule → + RAG (занятие 3) → + ADR (занятие 4). Листы 10–13 — тот же сюжет с выключенными слоями. Живой login: 30–35 (Ctx — сцена, не слой). <strong>main</strong> — логин / items, без note. <strong>develop</strong> — заметка влита, ярусы takeaway 6/6.</p>
+        <p class="tiny muted" style="margin-top:6px">Наращивание: skill → + rule → + RAG (занятие 3) → + ADR (занятие 4). Листы 10–13 — тот же сюжет с выключенными слоями. Живой login: 30–35 (Context — сцена, не слой). <strong>main</strong> — логин / items, без note. <strong>develop</strong> — заметка влита, ярусы takeaway 6/6.</p>
       </section>
     </div>
   </div>
@@ -868,7 +872,7 @@ class LoginScreenshotTests { … }
     </div>
     <div class="hd__meta">
       <div class="chips">
-        <span class="chip chip--ctx chip--on chip--dashed">Ctx</span>
+        <span class="chip chip--ctx chip--on">Context</span>
         <span class="chip chip--skill">Skill</span>
         <span class="chip chip--rule">Rule</span>
         <span class="chip chip--rag">RAG</span>
@@ -879,7 +883,7 @@ class LoginScreenshotTests { … }
   </header>
 
   <h1 class="h1">Две вкладки и один промпт</h1>
-  <p class="lead">Сцена занятия: открыты <strong>LoginTests</strong> (успешный логин) и <strong>LoginPage</strong>. TestBase и Gradle — не третья вкладка, агент их «видит» сам. Это <strong>project context</strong>, не слой. Слои включаем со следующего листа.</p>
+  <p class="lead">Сцена занятия: открыты <strong>LoginTests</strong> (успешный логин) и <strong>LoginPage</strong>. <strong>HomePage</strong> (Welcome), TestBase и Gradle — не третья вкладка, агент их «видит» сам. Это <strong>project context</strong>, не слой. Слои включаем со следующего листа.</p>
 
   <div class="body">
     <p class="prompt">Добавь автотест на неуспешный логин с неправильным паролем</p>
@@ -904,38 +908,38 @@ class LoginTests extends TestBase {
       <section class="panel">
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">вкладка 2 · LoginPage.java</p></div>
         <div class="panel__body">
-          <pre class="pre--sm">openPage()              → LoginPage     open("/login")
-fillAndSubmitForm(u, p) → HomePage      // только happy path
-typeUsername / typePassword → this
-submitExpectingError()  → this          // ошибка на форме
-shouldHaveErrorMessage(msg) → this
+          <pre class="pre--sm">loginInput    = $("[data-testid='login-input']");
+passwordInput = $("[data-testid='password-input']");
+submitButton  = $("[data-testid='submit-button']");
 
-локаторы только здесь, data-testid:
-  login-input · password-input
-  submit-button · error-message</pre>
+LoginPage openPage()
+HomePage  fillAndSubmitForm(String username, String password)  // только happy path
+LoginPage typeUsername(String username)
+LoginPage typePassword(String password)</pre>
         </div>
       </section>
     </div>
 
     <div class="grid-2" style="display:grid;gap:8px">
       <section class="panel">
+        <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">условно · HomePage.java</p></div>
+        <div class="panel__body">
+          <pre class="pre--sm">welcomeMessage = $("[data-testid='welcome-message']");
+
+HomePage shouldHaveWelcomeMessage(String message)
+  // fillAndSubmitForm возвращает сюда</pre>
+        </div>
+      </section>
+      <section class="panel">
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">условно · TestBase.java</p></div>
         <div class="panel__body">
           <pre class="pre--sm">protected LoginPage loginPage = new LoginPage();
 Configuration.baseUrl = ConfigReader.resolveWebBaseUrl();
 // chrome / remote — из config
-// не new ChromeDriver() в тесте</pre>
-        </div>
-      </section>
-      <section class="panel">
-        <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">условно · build.gradle + прогон</p></div>
-        <div class="panel__body">
-          <pre class="pre--sm">test {
-  useJUnitPlatform { includeTags из -DincludeTags }
-  systemProperty 'env', testEnv          // -Denv=
-}
-// task testE2e — нет
+// не new ChromeDriver() в тесте
 
+test { includeTags из -DincludeTags; -Denv= }
+// task testE2e — нет
 ./gradlew test -Denv=ci -DincludeTags=e2e \
   -Dtest=LoginTests#&lt;method&gt;</pre>
         </div>
@@ -946,7 +950,7 @@ Configuration.baseUrl = ConfigReader.resolveWebBaseUrl();
   </div>
 
   <footer class="ft">
-    <span>Ctx всегда включён · пунктир = не слой</span>
+    <span>Context всегда включён · не слой</span>
     <span>Канон happy path: <code>LoginTests#shouldLoginWithValidCredentials</code></span>
     <span>живой опыт · 1/6</span>
   </footer>
@@ -962,7 +966,7 @@ Configuration.baseUrl = ConfigReader.resolveWebBaseUrl();
     </div>
     <div class="hd__meta">
       <div class="chips">
-        <span class="chip chip--ctx chip--on chip--dashed">Ctx</span>
+        <span class="chip chip--ctx chip--on">Context</span>
         <span class="chip chip--skill chip--on">Skill</span>
         <span class="chip chip--rule chip--on">Rule</span>
         <span class="chip chip--rag chip--on">RAG</span>
@@ -973,7 +977,7 @@ Configuration.baseUrl = ConfigReader.resolveWebBaseUrl();
   </header>
 
   <h1 class="h1">Правильный ответ: слои не дают скопировать happy path</h1>
-  <p class="lead">Те же две вкладки, тот же промпт. <strong>Ctx даёт образец</strong>. Skill / rule / RAG / ADR не дают взять <code>fillAndSubmitForm</code> на sad path, выдумать task и закрыть 401 кликом.</p>
+  <p class="lead">Те же две вкладки, тот же промпт. <strong>Context даёт образец</strong>. Skill / rule / RAG / ADR не дают взять <code>fillAndSubmitForm</code> на sad path, выдумать task и закрыть 401 кликом.</p>
 
   <div class="body">
     <div class="grid-2" style="display:grid;gap:8px">
@@ -1047,7 +1051,7 @@ exit code 0 · нет commit</pre>
     </div>
     <div class="hd__meta">
       <div class="chips">
-        <span class="chip chip--ctx chip--on chip--dashed">Ctx</span>
+        <span class="chip chip--ctx chip--on">Context</span>
         <span class="chip chip--skill chip--on">Skill</span>
         <span class="chip chip--rule chip--on">Rule</span>
         <span class="chip chip--rag chip--on">RAG</span>
@@ -1106,7 +1110,7 @@ $(".alert").shouldHave(text("Invalid credentials"));
         </div>
       </section>
     </div>
-    <div class="do"><b>Читать таблицу</b>−RAG на этом промпте самый зрелищный: агент честно смотрит на открытый happy path и применяет его к неверному паролю. Ctx не лечит, он <em>кормит</em> эту ошибку.</div>
+    <div class="do"><b>Читать таблицу</b>−RAG на этом промпте самый зрелищный: агент честно смотрит на открытый happy path и применяет его к неверному паролю. Context не лечит, он <em>кормит</em> эту ошибку.</div>
   </div>
 
   <footer class="ft">
@@ -1126,7 +1130,7 @@ $(".alert").shouldHave(text("Invalid credentials"));
     </div>
     <div class="hd__meta">
       <div class="chips">
-        <span class="chip chip--ctx chip--on chip--dashed">Ctx</span>
+        <span class="chip chip--ctx chip--on">Context</span>
         <span class="chip chip--skill">Skill</span>
         <span class="chip chip--rule">Rule</span>
         <span class="chip chip--rag">RAG</span>
@@ -1137,7 +1141,7 @@ $(".alert").shouldHave(text("Invalid credentials"));
   </header>
 
   <h1 class="h1">Осталось два слоя: дыры складываются</h1>
-  <p class="lead">C(4,2) = 6. Не все live — таблица на экран. Ctx по-прежнему открыт. Промпт тот же.</p>
+  <p class="lead">C(4,2) = 6. Не все live — таблица на экран. Context по-прежнему открыт. Промпт тот же.</p>
 
   <div class="body">
     <section class="panel">
@@ -1211,7 +1215,7 @@ $(".alert").shouldHave(text("Invalid credentials"));
     </div>
     <div class="hd__meta">
       <div class="chips">
-        <span class="chip chip--ctx chip--on chip--dashed">Ctx</span>
+        <span class="chip chip--ctx chip--on">Context</span>
         <span class="chip chip--skill">Skill</span>
         <span class="chip chip--rule">Rule</span>
         <span class="chip chip--rag">RAG</span>
@@ -1277,7 +1281,7 @@ git commit -am "add login test"</pre>
   </div>
 
   <footer class="ft">
-    <span>Колонка «0 слоёв» = лист 35: это всё ещё Ctx</span>
+    <span>Колонка «0 слоёв» = лист 35: это всё ещё Context</span>
     <span>живой опыт · 5/6</span>
   </footer>
 </article>
@@ -1292,13 +1296,13 @@ git commit -am "add login test"</pre>
     </div>
     <div class="hd__meta">
       <div class="chips">
-        <span class="chip chip--ctx chip--on chip--dashed">Ctx</span>
+        <span class="chip chip--ctx chip--on">Context</span>
         <span class="chip chip--skill">Skill</span>
         <span class="chip chip--rule">Rule</span>
         <span class="chip chip--rag">RAG</span>
         <span class="chip chip--adr">ADR</span>
       </div>
-      <div class="hd__id">35 · ctx ≠ слой</div>
+      <div class="hd__id">35 · context ≠ слой</div>
     </div>
   </header>
 
@@ -1308,7 +1312,7 @@ git commit -am "add login test"</pre>
   <div class="body">
     <div class="grid-2" style="display:grid;gap:8px">
       <section class="card card--ctx">
-        <div class="card__label"><span class="card__name">Что такое Ctx</span><span class="card__q">сцена</span></div>
+        <div class="card__label"><span class="card__name">Что такое Context</span><span class="card__q">сцена</span></div>
         <ul>
           <li>Вкладки: <code>LoginTests</code>, <code>LoginPage</code></li>
           <li>Недавно открытый <code>TestBase</code></li>
@@ -1318,7 +1322,7 @@ git commit -am "add login test"</pre>
         <p class="tiny muted">Примеры «как уже сделано». Нет When, нет запрета, нет точного текста ошибки, нет развилки 401.</p>
       </section>
       <section class="card card--muted">
-        <div class="card__label"><span class="card__name">Чего Ctx не делает</span><span class="card__q">не слой</span></div>
+        <div class="card__label"><span class="card__name">Чего Context не делает</span><span class="card__q">не слой</span></div>
         <ul>
           <li>Не skill — не заставляет выбрать один <code>@Layer</code> и DoD</li>
           <li>Не rule — не держит «не commit» на следующем ходе</li>
@@ -1330,7 +1334,7 @@ git commit -am "add login test"</pre>
 
     <div class="grid-2" style="display:grid;gap:8px">
       <section class="panel panel--bad">
-        <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">только Ctx · самая тихая галлюцинация</p></div>
+        <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">только Context · самая тихая галлюцинация</p></div>
         <div class="panel__body">
           <pre>// выглядит как канон — скопировал вкладку 1
 loginPage.openPage()
@@ -1348,7 +1352,7 @@ git commit -am "login"</pre>
         <div class="panel__bar"><span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span><p class="panel__title">эксперимент на занятии</p></div>
         <div class="panel__body">
           <pre>Контроль   две вкладки + один промпт
-           Ctx всегда ON  ← не переменная
+           Context всегда ON  ← не переменная
 
 Лечение    Skill · Rule · RAG · ADR
            включаем / выключаем по одному
@@ -1363,8 +1367,8 @@ git commit -am "login"</pre>
   </div>
 
   <footer class="ft">
-    <span>Пунктирный chip = всегда в кадре, не в паке как файл-слой</span>
-    <span>AGENTS.md / rules — это Rule, не Ctx</span>
+    <span>Context всегда в кадре, не в паке как файл-слой</span>
+    <span>AGENTS.md / rules — это Rule, не Context</span>
     <span>живой опыт · 6/6</span>
   </footer>
 </article>
