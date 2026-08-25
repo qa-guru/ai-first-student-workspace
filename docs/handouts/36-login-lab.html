@@ -22,7 +22,7 @@
     </div>
   </header>
 
-  <section class="lab-toolbar" id="lab-prompt" aria-label="Промпт и тумблеры">
+  <section class="lab-toolbar" id="lab-prompt" aria-label="Промпт">
     <article class="panel lab-prompt">
       <header class="panel__bar">
         <span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span>
@@ -36,7 +36,11 @@
       </header>
       <div class="panel__body">
         <p class="prompt">Добавь автотест на неуспешный логин с неправильным паролем</p>
-        <div class="lab-toolbar__row lab-toolbar__row--controls">
+      </div>
+    </article>
+  </section>
+  <div class="lab-dock" aria-label="Тумблеры и пресеты">
+    <div class="lab-toolbar__row lab-toolbar__row--controls">
       <div class="lab-switches" role="group" aria-label="Слои вкл/выкл">
         <button type="button" class="lab-sw lab-sw--ctx is-on" data-layer="ctx" aria-pressed="true">
           <span class="lab-sw__name">Context</span>
@@ -59,6 +63,7 @@
           <span class="lab-sw__q">почему</span>
         </button>
       </div>
+      <div class="lab-presets-pack">
       <div class="lab-presets" role="group" aria-label="Пресеты слоёв">
         <span class="lab-presets__lbl">Слои</span>
         <button type="button" class="lab-preset" data-preset="full" title="Вкладки и все четыре слоя включены">всё включено</button>
@@ -66,10 +71,18 @@
         <button type="button" class="lab-preset" data-preset="meta" title="Skill / Rule / RAG / ADR вкл, вкладки закрыты">включены только ии-meta</button>
         <button type="button" class="lab-preset" data-preset="noct" title="Вкладки и все слои выключены">все выключено</button>
       </div>
-        </div>
+      <div class="lab-presets" role="group" aria-label="Лист 32 и пары 33">
+        <span class="lab-presets__lbl">32–33</span>
+        <button type="button" class="lab-preset" data-preset="minus-skill" title="Лист 32: Skill выкл, вкладки открыты">−Skill</button>
+        <button type="button" class="lab-preset" data-preset="minus-rule" title="Лист 32: Rule выкл, вкладки открыты">−Rule</button>
+        <button type="button" class="lab-preset" data-preset="minus-rag" title="Лист 32: RAG выкл, вкладки открыты">−RAG</button>
+        <button type="button" class="lab-preset" data-preset="minus-adr" title="Лист 32: ADR выкл, вкладки открыты">−ADR</button>
+        <button type="button" class="lab-preset" data-preset="skill-rule" title="Лист 33: Skill+Rule, вкладки открыты">Skill+Rule</button>
+        <button type="button" class="lab-preset" data-preset="skill-rag" title="Лист 33: Skill+RAG, вкладки открыты">Skill+RAG</button>
       </div>
-    </article>
-  </section>
+      </div>
+    </div>
+  </div>
 
   <section class="lab-stage" id="lab-board">
     <section class="lab-ai" aria-labelledby="lab-ai-title">
@@ -295,13 +308,14 @@ typeUsername / submitExpectingError
 - @Tag("smoke") тоже slice, не ярус
 - task testE2e нет
 
-401 JSON — это api (AuthApiTests),
+401 JSON — это api
+(AuthApiTests#loginWithInvalidPassword),
 не новый e2e-клик.</pre>
           </div>
         </header>
         <div class="panel__body">
           <p class="lab-src__load">как попадает: skill ссылается, сам не копирует</p>
-          <pre class="lab-code">401 JSON → AuthApiTests, не клик
+          <pre class="lab-code">401 JSON → AuthApiTests#loginWithInvalidPassword
 screenshot = @Tag, не @Layer
 smoke тоже slice, не ярус</pre>
         </div>
@@ -715,7 +729,7 @@ e2e-tests:
 
   <footer class="ft">
     <span id="lab-count">4 из 4, вкладки открыты</span>
-    <span>клавиши C S R G A · шапка — файл · тело карточки — вкл/выкл. В IDE после смены слоёв — новый агент.</span>
+    <span>клавиши C S R G A · шапка — файл (клик) · тело карточки — вкл/выкл. В IDE после смены слоёв — новый агент.</span>
     <span>печатать не надо</span>
   </footer>
 </div>

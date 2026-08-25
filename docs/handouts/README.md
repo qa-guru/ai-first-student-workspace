@@ -62,7 +62,28 @@
 - [35 · context ≠ слой](index.html#35-login-context) — открытый канон кормит копипаст
 - [36 · лаборатория](36-login-lab.html) — тумблеры Skill / Rule / RAG / ADR / Context, сразу видно код галлюцинации (не A4, не PDF). Сравнение по рядам файла (test → page → …), Java — `white-space: pre` + скролл, не `pre-wrap` (`check-lab-wrap.py`).
 
-Перед live закомментируй `shouldShowErrorWhenPasswordIsWrong`. New Agent после смены слоёв. На занятии достаточно полного стека + «ничего»; пары — с листа. Лаборатория 36 — на проектор: выключаешь слой, краснеют строки.
+Хэш: `c`/`s`/`r`/`g`/`a` + `0|1`, потом `u` + `c`|`l`|`a`|`x` (Cursor / Cline / Claude / Codex). Cursor = `…uc`.
+
+| Пресет | Хэш |
+|------|-----|
+| полный | `#c1s1r1g1a1uc` |
+| − RAG | `#c1s1r1g0a1uc` |
+| − Rule | `#c1s1r0g1a1uc` |
+| − Skill | `#c1s0r1g1a1uc` |
+| − ADR | `#c1s1r1g1a0uc` |
+| только слои | `#c0s1r1g1a1uc` |
+| только контекст | `#c1s0r0g0a0uc` |
+| все выключено | `#c0s0r0g0a0uc` |
+| Skill+Rule | `#c1s1r1g0a0uc` |
+| Skill+RAG | `#c1s1r0g1a0uc` |
+| Skill+ADR | `#c1s1r0g0a1uc` |
+| Rule+RAG | `#c1s0r1g1a0uc` |
+| Rule+ADR | `#c1s0r1g0a1uc` |
+| RAG+ADR | `#c1s0r0g1a1uc` |
+
+Skill+ADR / Rule+RAG / Rule+ADR / RAG+ADR — с листа 33, без кнопок (хэш в адресной строке). Контекст лабы — снимок **до дописывания** (метод комментируют, error-path в PO на вкладке нет), не текущий `develop`.
+
+Перед live закомментируй `shouldShowErrorWhenPasswordIsWrong`. New Agent после смены слоёв. Лаборатория 36 — на проектор: выключаешь слой, краснеют строки.
 
 ## Наращивание
 

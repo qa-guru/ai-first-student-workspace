@@ -10,7 +10,13 @@
     { id: "full", label: "всё включено", state: { ctx: true, skill: true, rule: true, rag: true, adr: true } },
     { id: "empty", label: "включен только контекст", state: { ctx: true, skill: false, rule: false, rag: false, adr: false } },
     { id: "meta", label: "включены только ии-meta", state: { ctx: false, skill: true, rule: true, rag: true, adr: true } },
-    { id: "noct", label: "все выключено", state: { ctx: false, skill: false, rule: false, rag: false, adr: false } }
+    { id: "noct", label: "все выключено", state: { ctx: false, skill: false, rule: false, rag: false, adr: false } },
+    { id: "minus-skill", label: "−Skill", state: { ctx: true, skill: false, rule: true, rag: true, adr: true } },
+    { id: "minus-rule", label: "−Rule", state: { ctx: true, skill: true, rule: false, rag: true, adr: true } },
+    { id: "minus-rag", label: "−RAG", state: { ctx: true, skill: true, rule: true, rag: false, adr: true } },
+    { id: "minus-adr", label: "−ADR", state: { ctx: true, skill: true, rule: true, rag: true, adr: false } },
+    { id: "skill-rule", label: "Skill+Rule", state: { ctx: true, skill: true, rule: true, rag: false, adr: false } },
+    { id: "skill-rag", label: "Skill+RAG", state: { ctx: true, skill: true, rule: false, rag: true, adr: false } }
   ];
 
   var IDES = ["cursor", "cline", "claude", "codex"];
@@ -585,10 +591,10 @@
     runLines.push(ln("dim", ""));
     if (n === 4 && ctx) {
       runLines.push(ln("ok", "# e2e · pipeline / stage / prod · exit 0 · нет commit"));
-      runLines.push(ln("ok", "# 401 уже в AuthApiTests, не трогаем"));
+      runLines.push(ln("ok", "# 401 уже в AuthApiTests#loginWithInvalidPassword"));
     } else if (n === 4) {
       runLines.push(ln("bad", "# слои сказали как гонять, живой класс не видел"));
-      runLines.push(ln("ok", "# 401 уже в AuthApiTests, не трогаем"));
+      runLines.push(ln("ok", "# 401 уже в AuthApiTests#loginWithInvalidPassword"));
     } else if (skill) {
       runLines.push(ln("ok", "# skill хотя бы сказал слой и DoD"));
       if (!adr) runLines.push(ln("bad", "# и ещё e2e на JSON «на всякий»"));
@@ -647,26 +653,14 @@
       ];
     }
 
-    var propsKind;
-    var propsLines;
-    if (rule) {
-      propsKind = "ok";
-      propsLines = [
-        ln("ok", "baseUrl=http://localhost:9821/"),
-        ln("ok", "browser=chrome"),
-        ln("ok", "browserVersion=148"),
-        ln("ok", "browserSize=1920x1280"),
-        ln("ok", "headless=true")
-      ];
-    } else {
-      propsKind = "bad";
-      propsLines = [
-        ln("bad", "baseUrl=http://localhost:9821/"),
-        ln("dim", ""),
-        ln("bad", "# -Denv= не читал"),
-        ln("bad", "# pipeline / stage / prod — нет")
-      ];
-    }
+    var propsKind = "ok";
+    var propsLines = [
+      ln("ok", "baseUrl=http://localhost:9821/"),
+      ln("ok", "browser=chrome"),
+      ln("ok", "browserVersion=148"),
+      ln("ok", "browserSize=1920x1280"),
+      ln("ok", "headless=true")
+    ];
 
     var ciKind;
     var ciLines;
@@ -717,6 +711,7 @@
     if (!adr) {
       extras.push(panel("extra-test-401", "test · Login401Tests.java", "bad", [
         ln("bad", "// нового e2e на 401 — нет ADR 005"),
+        ln("dim", "// уже есть AuthApiTests#loginWithInvalidPassword"),
         ln("dim", ""),
         ln("bad", "@Layer(\"screenshot\")"),
         ln("bad", "class Login401Tests {"),
@@ -762,7 +757,7 @@
           : "LoginPage не открывал";
     var homeLoad = ctx ? "не трогал — Welcome уже на HomePage" : "HomePage не открывал";
     var baseLoad = ctx ? "не трогал — loginPage уже в TestBase" : "TestBase не открывал";
-    var propsLoad = rule ? "не трогал — URL не в Java" : "захардкодил URL в ci.properties";
+    var propsLoad = "не трогал — URL не в Java";
     var gradleLoad = rag ? "не трогал — как в репо" : "навыдумал task — в репо его нет";
     var cliLoad = "прогон из шелла, не Java";
     var ciLoad = rag && rule
@@ -860,7 +855,7 @@
         layer: "rule",
         title: "весь suite, commit, URL в Java",
         ideal: "Не commit / push без OK. URL только из properties. Всегда -Denv=. Один task = один метод.",
-        expected: "git commit сам. ./gradlew test на весь suite. URL захардкожен в Java или в ci.properties.",
+        expected: "git commit сам. ./gradlew test на весь suite. URL захардкожен в Java.",
         why: "Rule — «нельзя». Skill может сказать как писать тест, но без ПДД агент сам коммитит и не выбирает стенд."
       });
     }
@@ -887,9 +882,9 @@
       gaps.push({
         layer: "adr",
         title: "e2e на 401 и screenshot-слой",
-        ideal: "401 JSON уже в AuthApiTests — не трогаем. screenshot = @Tag, не @Layer. smoke тоже slice.",
+        ideal: "401 JSON уже в AuthApiTests#loginWithInvalidPassword — не трогаем. screenshot = @Tag, не @Layer. smoke тоже slice.",
         expected: "На LoginTests появляется лишний @Layer(\"screenshot\"). Ещё Login401Tests с тем же слоем и @Tag(\"api\"), клик по 401. Путает slice и ярус.",
-        why: "ADR 005 фиксирует «почему так». Skill ссылается, сам не копирует. Без ADR агент «на всякий» добавит лишний e2e."
+        why: "ADR 005 фиксирует «почему так». Skill ссылается, сам не копирует. Без ADR агент «на всякий» кликнет 401, хотя метод уже есть в AuthApiTests#loginWithInvalidPassword."
       });
     }
     return { match: match, gaps: gaps, n: n };
@@ -1081,6 +1076,14 @@
     });
 
     writeHash();
+    syncDock();
+  }
+
+  function syncDock() {
+    var dock = document.querySelector(".lab-dock");
+    var screen = document.querySelector(".lab-screen");
+    if (!dock || !screen) return;
+    screen.style.setProperty("--lab-dock-h", dock.offsetHeight + "px");
   }
 
   function apply(next) {
@@ -1128,13 +1131,23 @@
       });
     });
     document.querySelectorAll(".lab-src__hd").forEach(function (hd) {
-      hd.addEventListener("click", function (e) {
-        e.stopPropagation();
+      hd.setAttribute("tabindex", "0");
+      function pinFromHd() {
         var src = hd.closest(".lab-src");
         if (!src) return;
         var on = src.classList.contains("is-pinned");
         unpinAll();
         if (!on) src.classList.add("is-pinned");
+      }
+      hd.addEventListener("click", function (e) {
+        e.stopPropagation();
+        pinFromHd();
+      });
+      hd.addEventListener("keydown", function (e) {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        e.preventDefault();
+        e.stopPropagation();
+        pinFromHd();
       });
     });
     document.querySelectorAll(".lab-src__pop").forEach(function (pop) {
@@ -1148,6 +1161,8 @@
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") {
         unpinAll();
+        var ae = document.activeElement;
+        if (ae && ae.classList && ae.classList.contains("lab-src__hd")) ae.blur();
         return;
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -1180,5 +1195,6 @@
   }
   paintStatic();
   bind();
+  window.addEventListener("resize", syncDock);
   render();
 })();

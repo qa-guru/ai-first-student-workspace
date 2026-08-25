@@ -204,7 +204,7 @@ props_pre = re.search(
     html,
 )
 props_js = re.search(
-    r'if \(rule\) \{\s*propsKind = "ok";\s*propsLines = \[([\s\S]*?)\];',
+    r'var propsLines = \[([\s\S]*?)\];',
     js,
 )
 if not props_pre or not props_js:
@@ -231,8 +231,14 @@ props_load = re.search(
 )
 if not props_load or props_load.group(1).strip() != "не трогал — URL не в Java":
     errors.append("props context load must be `не трогал — URL не в Java`")
-if 'propsLoad = rule ? "не трогал — URL не в Java"' not in js:
+if 'propsLoad = "не трогал — URL не в Java"' not in js:
     errors.append("props compose() load must match the context caption")
+if re.search(r'propsKind\s*=\s*"bad"', js):
+    errors.append("without Rule, props must not go red — URL is in Java/cli, not ci.properties")
+if "AuthApiTests#loginWithInvalidPassword" not in html:
+    errors.append("ADR card/pop must name AuthApiTests#loginWithInvalidPassword")
+if "AuthApiTests#loginWithInvalidPassword" not in js:
+    errors.append("ADR why/extra must name AuthApiTests#loginWithInvalidPassword")
 
 if re.search(r"\.lab-cell--expected\s+\.lab-ln--ok\s*\{", css):
     errors.append(
@@ -274,6 +280,14 @@ if cli_lines:
             errors.append(f"cli · терминал: {why}: {line}")
 else:
     errors.append("cli extractor found no lines")
+
+if re.search(r"\.lab-src__hd:hover\s+\.lab-src__pop", css):
+    errors.append("lab pop must not open on hover — pin / focus-within only")
+legend = class_block("lab-legend", css)
+if legend and "z-index: 6" not in legend:
+    errors.append("`.lab-legend` z-index must stay 6 — pops sit above it")
+if "class=\"lab-dock\"" not in html and "class='lab-dock'" not in html:
+    errors.append("toggles must live in `.lab-dock` (sticky), not inside the prompt card")
 
 if "if (n === 4 && ctx)" not in js:
     errors.append(
