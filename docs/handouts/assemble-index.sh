@@ -2,6 +2,7 @@
 # Concatenate sheet <article>s into index.html (same-page #anchors).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
+python3 "$ROOT/check-lab-wrap.py"
 python3 - "$ROOT" << 'PY'
 from pathlib import Path
 import re, sys
@@ -22,12 +23,14 @@ sheets = [
     ("32-login-minus-one", "32 · полный − 1", "своя галлюцинация у слоя"),
     ("33-login-pairs", "33 · пары", "2 из 4 · дыры складываются"),
     ("34-login-singles", "34 · одиночки / пусто", "1 из 4 · учебный интернет"),
-    ("35-login-context", "35 · ctx ≠ слой", "пятая опция · сцена, не скрипт"),
+    ("35-login-context", "35 · context ≠ слой", "пятая опция · сцена, не скрипт"),
+    # 36-login-lab.html — standalone interactive page, not concatenated.
     ("10-stack-skills", "10 · skills", "есть маршрут, нет тормозов"),
     ("11-stack-skills-rules", "11 · skills + rules", "занятие 2 · канон"),
     ("12-stack-skills-rules-rag", "12 · skills + rules + rag", "занятие 3"),
     ("13-stack-skills-rules-rag-adr", "13 · полный стек", "занятие 4"),
     ("40-homework", "40 · ДЗ · main → develop", "два промпта · блок сдачи"),
+    # 50-glossary.html — standalone reading page, not concatenated.
 ]
 sections = [
     ("По одной на слой + общая", sheets[:5]),
@@ -35,6 +38,7 @@ sections = [
     ("Login · живой опыт", sheets[10:16]),
     ("Наращивание", sheets[16:20]),
     ("Домашка", sheets[20:]),
+    ("Словарь", []),
 ]
 
 def article(sid):
@@ -52,7 +56,12 @@ def toc(items):
 
 blocks = []
 for heading, items in sections:
-    blocks.append(f'  <h2 class="sec">{heading}</h2>\n{toc(items)}')
+    block = f'  <h2 class="sec">{heading}</h2>\n{toc(items)}'
+    if heading.startswith("Login · живой"):
+        block += '\n  <a class="sheet-link" href="36-login-lab.html"><b>36 · лаборатория</b><span>тумблеры слоёв · галлюцинация live</span></a>'
+    if heading == "Словарь":
+        block += '\n  <a class="sheet-link" href="50-glossary.html"><b>50 · словарь AI-стека</b><span>термин · общее · на LoginTests</span></a>'
+    blocks.append(block)
 
 index = f'''<!DOCTYPE html>
 <html lang="ru">
@@ -70,7 +79,7 @@ index = f'''<!DOCTYPE html>
 
 {chr(10).join(blocks)}
 
-  <p style="margin-top:24px"><a href="README.md">README.md</a> · пак: <a href="../agent-skills/PACK.md">docs/agent-skills/PACK.md</a></p>
+  <p style="margin-top:24px"><a href="README.md">README.md</a> · пак: <a href="../agent-skills/PACK.md">docs/agent-skills/PACK.md</a> · словарь: <a href="50-glossary.html">50-glossary.html</a></p>
 </main>
 
 {chr(10).join(article(sid) for sid, _, _ in sheets)}

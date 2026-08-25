@@ -52,16 +52,38 @@
 
 ## Login · живой опыт (абляция)
 
-Тот же промпт, две вкладки. Ctx (открытый код) всегда в кадре — не путать со слоем.
+Тот же промпт, две вкладки. Context (открытый код) всегда в кадре — не путать со слоем.
 
 - [30 · микропроект](index.html#30-login-micro) — `LoginTests` + `LoginPage`
 - [31 · полный стек](index.html#31-login-full) — канон `shouldShowErrorWhenPasswordIsWrong`
 - [32 · полный − 1](index.html#32-login-minus-one) — у каждого слоя своя галлюцинация
 - [33 · пары](index.html#33-login-pairs) — 2 из 4
 - [34 · одиночки / пусто](index.html#34-login-singles) — 1 из 4 и «учебный интернет»
-- [35 · ctx ≠ слой](index.html#35-login-context) — открытый канон кормит копипаст
+- [35 · context ≠ слой](index.html#35-login-context) — открытый канон кормит копипаст
+- [36 · лаборатория](36-login-lab.html) — тумблеры Skill / Rule / RAG / ADR / Context, сразу видно код галлюцинации (не A4, не PDF). Сравнение по рядам файла (test → page → …), Java — `white-space: pre` + скролл, не `pre-wrap` (`check-lab-wrap.py`).
 
-Перед live закомментируй `shouldShowErrorWhenPasswordIsWrong`. New Agent после смены слоёв. На занятии достаточно полного стека + «ничего»; пары — с листа.
+Хэш: `c`/`s`/`r`/`g`/`a` + `0|1`, потом `u` + `c`|`l`|`a`|`x` (Cursor / Cline / Claude / Codex). Cursor = `…uc`.
+
+| Пресет | Хэш |
+|------|-----|
+| полный | `#c1s1r1g1a1uc` |
+| − RAG | `#c1s1r1g0a1uc` |
+| − Rule | `#c1s1r0g1a1uc` |
+| − Skill | `#c1s0r1g1a1uc` |
+| − ADR | `#c1s1r1g1a0uc` |
+| только слои | `#c0s1r1g1a1uc` |
+| только контекст | `#c1s0r0g0a0uc` |
+| все выключено | `#c0s0r0g0a0uc` |
+| Skill+Rule | `#c1s1r1g0a0uc` |
+| Skill+RAG | `#c1s1r0g1a0uc` |
+| Skill+ADR | `#c1s1r0g0a1uc` |
+| Rule+RAG | `#c1s0r1g1a0uc` |
+| Rule+ADR | `#c1s0r1g0a1uc` |
+| RAG+ADR | `#c1s0r0g1a1uc` |
+
+Skill+ADR / Rule+RAG / Rule+ADR / RAG+ADR — с листа 33, без кнопок (хэш в адресной строке). Контекст лабы — снимок **до дописывания** (метод комментируют, error-path в PO на вкладке нет), не текущий `develop`.
+
+Перед live закомментируй `shouldShowErrorWhenPasswordIsWrong`. New Agent после смены слоёв. Лаборатория 36 — на проектор: выключаешь слой, краснеют строки.
 
 ## Наращивание
 
@@ -73,6 +95,10 @@
 ## Домашка
 
 - [40 · ДЗ · main → develop](index.html#40-homework) — два промпта, блок «Сдача ДЗ»; тексты: [HOMEWORK.md](../../HOMEWORK.md)
+
+## Словарь
+
+- [50 · словарь AI-стека](50-glossary.html) — у каждого термина два пояснения: общее и на каноне `LoginTests#shouldShowErrorWhenPasswordIsWrong` (не A4, не PDF). Live: […/docs/handouts/50-glossary.html](https://qa-guru.github.io/ai-first-student-workspace/docs/handouts/50-glossary.html).
 
 ## Печать
 
