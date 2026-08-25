@@ -93,7 +93,7 @@ body.deck {
 .brand svg { width: 22px; height: 22px; flex-shrink: 0; }
 
 .brand__name {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.14em;
   color: var(--color-primary);
@@ -101,7 +101,7 @@ body.deck {
 
 .brand__kicker {
   margin-top: 1px;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--color-text-muted);
 }
 
@@ -122,11 +122,11 @@ body.deck {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  height: 20px;
-  padding: 0 8px;
+  height: 22px;
+  padding: 0 9px;
   border: 1px solid var(--color-border);
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
@@ -157,13 +157,13 @@ body.deck {
 .chip--dashed { border-style: dashed; }
 
 .hd__id {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--color-text-muted);
 }
 
 .h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 650;
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -171,7 +171,7 @@ body.deck {
 
 .lead {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 14px;
   line-height: 1.4;
   color: var(--color-text-muted);
   max-width: 210mm;
@@ -225,19 +225,19 @@ body.deck {
 }
 
 .card__name {
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 700;
   color: var(--accent, var(--color-text));
 }
 
 .card__q {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
 }
 
 .card p, .card li, .panel p, .panel li {
   margin: 0;
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.38;
 }
 
@@ -248,11 +248,11 @@ body.deck {
 }
 
 .muted { color: var(--color-text-muted); }
-.tiny { font-size: 10.5px; line-height: 1.35; }
+.tiny { font-size: 11.5px; line-height: 1.35; }
 
 code, .path {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 11.5px;
   background: var(--color-surface-soft);
   padding: 1px 5px;
   border-radius: 4px;
@@ -288,7 +288,7 @@ code, .path {
   margin: 0;
   flex: 1;
   text-align: right;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text-muted);
 }
@@ -304,7 +304,7 @@ code, .path {
 pre {
   margin: 0;
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   line-height: 1.45;
   color: #e6edf3;
   white-space: pre-wrap;
@@ -323,13 +323,13 @@ pre {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-surface-soft);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.35;
 }
 
 .flow__node b {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--accent, var(--color-text-muted));
@@ -363,7 +363,7 @@ pre {
   border-left-width: 3px;
   border-left-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 7%, var(--color-surface-soft));
-  font-size: 11.5px;
+  font-size: 13px;
   opacity: 0.28;
 }
 
@@ -373,12 +373,12 @@ pre {
 .tower__item--rag   { --accent: var(--layer-rag); }
 .tower__item--adr   { --accent: var(--layer-adr); }
 
-.tower__item b { font-size: 12px; }
+.tower__item b { font-size: 13px; }
 
 .kv {
   width: 100%;
   border-collapse: collapse;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .kv th, .kv td {
@@ -391,7 +391,7 @@ pre {
 .kv th {
   color: var(--color-text-muted);
   font-weight: 600;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -400,26 +400,26 @@ pre {
 
 .kv--dense th, .kv--dense td {
   padding: 3px 5px;
-  font-size: 10.5px;
+  font-size: 11.5px;
   line-height: 1.32;
 }
 .kv--dense td:first-child {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
 }
 .kv td.hall {
   white-space: normal;
   color: var(--color-danger);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
 }
 .kv td.keep {
   white-space: normal;
-  font-size: 10.5px;
+  font-size: 11.5px;
 }
 
 pre.pre--sm {
-  font-size: 9.5px;
+  font-size: 10.5px;
   line-height: 1.4;
 }
 
@@ -430,7 +430,7 @@ pre.pre--sm {
   min-width: 16px;
   height: 16px;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -441,7 +441,7 @@ pre.pre--sm {
   padding: 8px 10px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.38;
 }
 
@@ -464,7 +464,7 @@ pre.pre--sm {
 }
 .panel--good .panel__title { color: var(--color-success); }
 
-.do b, .dont b { display: block; margin-bottom: 2px; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+.do b, .dont b { display: block; margin-bottom: 2px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
 
 .ft {
   display: flex;
@@ -474,7 +474,7 @@ pre.pre--sm {
   flex: 0 0 auto;
   padding-top: 5px;
   border-top: 1px solid var(--color-border);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--color-text-muted);
 }
 
@@ -485,14 +485,14 @@ pre.pre--sm {
 }
 
 .stack-note {
-  font-size: 10.5px;
+  font-size: 11.5px;
   color: var(--color-text-muted);
   line-height: 1.35;
 }
 
 h2.sec {
   margin: 0 0 4px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -506,7 +506,7 @@ h2.sec {
   background: #1a1917;
   border: 1px solid rgba(255,255,255,0.08);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12.5px;
   line-height: 1.45;
   color: #e6edf3;
 }
@@ -519,7 +519,7 @@ h2.sec {
 
 .pack code {
   background: var(--color-surface-soft);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 @media screen {
@@ -544,7 +544,7 @@ h2.sec {
   margin: 32px auto 64px;
   color: var(--color-text);
 }
-.gallery h1 { font-size: 28px; margin: 0 0 8px; }
+.gallery h1 { font-size: 32px; margin: 0 0 8px; }
 .gallery p { color: var(--color-text-muted); }
 .gallery a { color: var(--color-info); }
 .gallery ol { line-height: 1.7; }
@@ -563,4 +563,4 @@ h2.sec {
 }
 .gallery .sheet-link:hover { background: var(--color-surface-soft); }
 .gallery .sheet-link b { color: var(--color-info); text-decoration: underline; }
-.gallery .sheet-link span { color: var(--color-text-muted); font-size: 13px; }
+.gallery .sheet-link span { color: var(--color-text-muted); font-size: 14px; }
