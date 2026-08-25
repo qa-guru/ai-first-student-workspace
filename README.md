@@ -5,6 +5,7 @@
 Продукт (не тесты): skills `be-add-resource` / `fe-add-ui` — [PACK.md](docs/agent-skills/PACK.md).
 
 Листы Rule · Skill · RAG · ADR: [docs/handouts/](docs/handouts/) · live: [qa-guru.github.io/…/docs/handouts/](https://qa-guru.github.io/ai-first-student-workspace/docs/handouts/index.html).  
+Лаборатория 36 (тумблеры слоёв): [36-login-lab.html](docs/handouts/36-login-lab.html) · live: […/36-login-lab.html](https://qa-guru.github.io/ai-first-student-workspace/docs/handouts/36-login-lab.html).  
 Словарь AI-стека (общее + на `LoginTests`): [50-glossary.html](docs/handouts/50-glossary.html) · live: […/50-glossary.html](https://qa-guru.github.io/ai-first-student-workspace/docs/handouts/50-glossary.html).  
 Домашка двумя запросами: [HOMEWORK.md](HOMEWORK.md) — ДЗ-1 `main` (стенд + e2e), ДЗ-2 `develop` (note + план пирамиды). Сначала **Fork**. Лист: [40](docs/handouts/index.html#40-homework).
 

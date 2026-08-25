@@ -35,6 +35,7 @@ ADR занятия 4 — в `docs/adr/`, не здесь. Нет `examples/multi
 Login без/с: [сценарий](../handouts/index.html#20-login) · [skill](../handouts/index.html#21-login-skill) · [rule](../handouts/index.html#22-login-rule) · [RAG](../handouts/index.html#23-login-rag) · [ADR](../handouts/index.html#24-login-adr).  
 Стеки: [только skill](../handouts/index.html#10-stack-skills) → [+ rules](../handouts/index.html#11-stack-skills-rules) → [+ RAG](../handouts/index.html#12-stack-skills-rules-rag) → [полный](../handouts/index.html#13-stack-skills-rules-rag-adr).  
 ДЗ: [40 · main → develop](../handouts/index.html#40-homework) · промпты [HOMEWORK.md](../../HOMEWORK.md).  
+Лаборатория: [36 · тумблеры слоёв](../handouts/36-login-lab.html).  
 Словарь: [50 · AI-стек на LoginTests](../handouts/50-glossary.html).
 
 ## Занятия 2–4
