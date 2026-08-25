@@ -3,9 +3,10 @@ import { envNavItems } from '../../vendor/ds/js/env-hosts.js';
 import { appPath } from './appBase';
 
 /**
- * Canonical header config for the takeaway SPA.
- * Omit `active` — header.js derives it from location.
- * Stage/Prod come from `js/env-hosts.js`.
+ * Canonical header config for the Multistack SPA. Nav hrefs are mount-prefixed
+ * so design-system `header.js` (real location) matches the live route under
+ * `/stack/{backend}/{frontend}/`. Omit `active` — header.js derives it from location.
+ * Stage/Prod come from `js/env-hosts.js` (current product host; matrix `public_host` on loopback).
  */
 export const headerConfig: HeaderConfig = {
   brand: { href: appPath('/'), label: 'Multistack' },
