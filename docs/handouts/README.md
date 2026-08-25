@@ -28,9 +28,7 @@
 
 Линейка занятий: skill → + rule (занятие 2) → + RAG (3) → + ADR (4).
 
-Ветки takeaway: **`main`** — логин / items, без note. **`develop`** — заметка влита, ярусы 6/6. ДЗ: сначала стенд на `main`, потом план пирамиды на `develop` (лист 40).
-
-Пак: [PACK.md](../agent-skills/PACK.md). Внешность листов — токены design-system (тёмный surface, panel chrome). Шрифт чуть крупнее, чем в первой вёрстке A4.
+Пак: [PACK.md](../agent-skills/PACK.md). Внешность листов — токены design-system (тёмный surface, panel chrome).
 
 ## По одной на слой + общая
 
