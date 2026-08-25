@@ -131,7 +131,6 @@ describe('canonical header.js — active nav follows the route', () => {
     expect(ariaCurrentTestids()).toEqual(['header-nav-home']);
   });
 
-
   it('re-syncs on SPA pushState (in-form Register → Login link)', async () => {
     await mountAt(`${MOUNT}/register`);
     expect(activeTestids()).toEqual(['header-nav-register']);
