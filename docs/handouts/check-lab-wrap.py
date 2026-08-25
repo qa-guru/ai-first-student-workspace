@@ -21,7 +21,7 @@ JAVA_IN_CLI = (
     (re.compile(
         r"\b(loginPage|WebDriver|ChromeDriver|shouldHave|shouldHave|setValue)\b"
     ), "Java/Selenide API"),
-    (re.compile(r"@(?:Layer|Tag|Epic|Feature|Test|DisplayName)\b"), "Java-аннотация"),
+    (re.compile(r"@(?:Layer|Tag|Epic|Feature|Test|DisplayName|Step)\b"), "Java-аннотация"),
 )
 
 
@@ -196,6 +196,49 @@ fn = re.search(r"function paintLines\([\s\S]*?\.join\(([^)]*)\)", js)
 if not fn or fn.group(1).strip() not in ('""', "''"):
     errors.append('paintLines must .join("") — .lab-ln is display:block')
 
+# --- props: context snippet = compose() when rule is on ---
+
+html = (ROOT / "36-login-lab.html").read_text()
+props_pre = re.search(
+    r'data-slot="props"[\s\S]*?<div class="panel__body">[\s\S]*?<pre class="lab-code">([\s\S]*?)</pre>',
+    html,
+)
+props_js = re.search(
+    r'if \(rule\) \{\s*propsKind = "ok";\s*propsLines = \[([\s\S]*?)\];',
+    js,
+)
+if not props_pre or not props_js:
+    errors.append("props extractor missed HTML snippet or JS propsLines")
+else:
+    html_body = [ln for ln in props_pre.group(1).strip().splitlines() if ln.strip()]
+    js_lines = [ln for ln in ln_texts("[" + props_js.group(1) + "]") if ln.strip()]
+    if html_body != js_lines:
+        errors.append(
+            "props context <pre> drifted from compose():\n    html: "
+            + " | ".join(html_body)
+            + "\n    js:   "
+            + " | ".join(js_lines)
+        )
+    keys = [ln for ln in html_body if "=" in ln]
+    if len(keys) != 5:
+        errors.append(f"props snippet must have 5 properties, got {len(keys)}")
+    if any("default.properties" in ln for ln in html_body + js_lines):
+        errors.append("props snippet must be one file (ci.properties), not default+ci")
+
+props_load = re.search(
+    r'data-slot="props"[\s\S]*?<div class="panel__body">[\s\S]*?<p class="lab-src__load">(.*?)</p>',
+    html,
+)
+if not props_load or props_load.group(1).strip() != "не трогал — URL не в Java":
+    errors.append("props context load must be `не трогал — URL не в Java`")
+if 'propsLoad = rule ? "не трогал — URL не в Java"' not in js:
+    errors.append("props compose() load must match the context caption")
+
+if re.search(r"\.lab-cell--expected\s+\.lab-ln--ok\s*\{", css):
+    errors.append(
+        "expected must not green all .lab-ln--ok — only test/page, same as ideal"
+    )
+
 # --- cli dialect: shell only ---
 
 samples = {
@@ -231,6 +274,15 @@ if cli_lines:
             errors.append(f"cli · терминал: {why}: {line}")
 else:
     errors.append("cli extractor found no lines")
+
+if "if (n === 4 && ctx)" not in js:
+    errors.append(
+        "verdict «тест как в репо» must require ctx — otherwise meta preset clones ideal"
+    )
+if "if (skill && ctx)" not in js:
+    errors.append("happyPathLines only when skill && ctx — tabs closed ≠ extend existing class")
+if 'id="lab-why-ctx"' not in html:
+    errors.append("lab why must have a context column (lab-why-ctx)")
 
 if errors:
     print("check-lab-wrap.py FAIL:", file=sys.stderr)

@@ -107,8 +107,8 @@
     return { kind: kind, text: text };
   }
 
-  function panel(id, title, kind, lines, extraOf) {
-    return { id: id, title: title, kind: kind, lines: lines, extraOf: extraOf || "" };
+  function panel(id, title, kind, lines, extraOf, load) {
+    return { id: id, title: title, kind: kind, lines: lines, extraOf: extraOf || "", load: load || "" };
   }
 
   function withExtras(mains, extras) {
@@ -137,7 +137,7 @@
     if (ctx) holds.push({ layer: "ctx", text: "открыты LoginTests, LoginPage и HomePage" });
     if (skill) holds.push({ layer: "skill", text: "пишет в PO и гоняет один метод" });
     if (rule) holds.push({ layer: "rule", text: "не гоняет весь suite и сам не коммитит" });
-    if (rag) holds.push({ layer: "rag", text: "берёт data-testid и текст ошибки из карточек" });
+    if (rag) holds.push({ layer: "rag", text: "берёт data-testid, текст ошибки и @Step с методов PO" });
     if (adr) holds.push({ layer: "adr", text: "401 не кликает, screenshot не считает слоем" });
 
     if (!ctx) {
@@ -145,7 +145,7 @@
         layer: "ctx",
         text: n === 0
           ? "вкладки закрыты, не видит что репо на Java — пишет pytest"
-          : "вкладки закрыты, не на что опереться"
+          : "вкладки закрыты: LoginTests с нуля, new LoginPage(), happy path не видел"
       });
     }
     if (!skill) holes.push({ layer: "skill", text: "новый класс, гоняет всё подряд, DoD нет" });
@@ -154,20 +154,24 @@
       holes.push({
         layer: "rag",
         text: ctx
-          ? "копирует successful login, не расширяет PO, текст ошибки выдумывает"
+          ? "копирует successful login, @Step на класс / пароль в шаге, не расширяет PO"
           : n === 0
             ? "селекторы с потолка, pytest"
-            : "берёт $(\"input\") и «Invalid credentials»"
+            : "берёт $(\"input\"), Allure.step в тесте, «Invalid credentials»"
       });
     }
     if (!adr) holes.push({ layer: "adr", text: "ещё полезет e2e на 401 и повесит @Layer(screenshot)" });
 
     var verdict;
-    if (n === 4) verdict = "Все слои включены. Тест как в репо.";
-    else if (n === 0 && ctx) verdict = "Слоёв нет, вкладки открыты. Спишет с successful login или сунет ChromeDriver.";
+    if (n === 4 && ctx) verdict = "Все слои включены. Тест как в репо.";
+    else if (n === 4) verdict = "Слои на месте, вкладок нет. Рецепт есть, живого LoginTests нет.";
+    else if (n === 0 && ctx) verdict = "Слоёв нет, вкладки открыты. Спишет happy path и повесит @Step на класс LoginPage.";
     else if (n === 0) verdict = "Ни слоёв, ни вкладок. Не понял, что это Java, написал pytest.";
-    else if (!rag) verdict = "Без RAG смотрит на successful login и копирует его на неверный пароль.";
-    else if (!rule) verdict = "Без rule сам тест может быть ок, но гоняет весь suite и коммитит сам.";
+    else if (!rag) {
+      verdict = ctx
+        ? "Без RAG копирует successful login и путает @Step: на класс, в тест, пароль в шаге."
+        : "Без RAG нет факта: селекторы, текст ошибки, куда ставить @Step.";
+    } else if (!rule) verdict = "Без rule сам тест может быть ок, но гоняет весь suite и коммитит сам.";
     else if (!skill) verdict = "Без skill тест иногда выходит, но в новом классе и без «как гонять».";
     else verdict = "Без ADR полезет e2e на 401 и сделает screenshot слоем.";
 
@@ -202,12 +206,15 @@
           ln("dim", ""),
           ln("bad", "// shouldHaveWelcomeMessage — не видел, откуда Welcome")
         ]),
-        // cli = шелл (#). Java open() / // — в test/page.
-        panel("cli", "cli · терминал", "bad", [
-          ln("bad", "pytest test_login.py"),
-          ln("bad", "git commit -am \"add login test\""),
+        panel("base", "base · TestBase.java", "bad", [
+          ln("dim", "// TestBase.java агент не видел"),
           ln("dim", ""),
-          ln("bad", "# в этом репо такого файла нет")
+          ln("bad", "// loginPage / Configuration — не видел")
+        ]),
+        panel("props", "props · ci.properties", "bad", [
+          ln("dim", "# properties не видел"),
+          ln("bad", "baseUrl=http://localhost:3000/"),
+          ln("bad", "# -Denv= нет")
         ]),
         panel("gradle", "build · build.gradle", "bad", [
           ln("dim", "// Gradle не видел"),
@@ -215,10 +222,12 @@
           ln("bad", "selenium==4.15.2"),
           ln("bad", "pytest==8.3.2")
         ]),
-        panel("props", "props · default.properties", "bad", [
-          ln("dim", "# properties не видел"),
-          ln("bad", "baseUrl=http://localhost:3000/"),
-          ln("bad", "# -Denv= нет")
+        // cli = шелл (#). Java open() / // — в test/page.
+        panel("cli", "cli · терминал", "bad", [
+          ln("bad", "pytest test_login.py"),
+          ln("bad", "git commit -am \"add login test\""),
+          ln("dim", ""),
+          ln("bad", "# в этом репо такого файла нет")
         ]),
         panel("ci", "ci · ci.yml", "bad", [
           ln("dim", "# GitHub Actions не видел"),
@@ -231,18 +240,44 @@
       ]);
     }
 
+    var happyPathLines = [
+      ln("dim", "@Layer(\"e2e\")"),
+      ln("dim", "@Epic(\"Authentication\")"),
+      ln("dim", "@Feature(\"Login\")"),
+      ln("dim", "class LoginTests extends TestBase {"),
+      ln("dim", ""),
+      ln("dim", "  @Test"),
+      ln("dim", "  @Tag(\"e2e\")"),
+      ln("dim", "  @Tag(\"smoke\")"),
+      ln("dim", "  @Tag(\"positive\")"),
+      ln("dim", "  @DisplayName(\"User is logged in with valid credentials\")"),
+      ln("dim", "  void shouldLoginWithValidCredentials() {"),
+      ln("dim", "    loginPage.openPage()"),
+      ln("dim", "        .fillAndSubmitForm(\"user1\", \"password1\")"),
+      ln("dim", "        .shouldHaveWelcomeMessage(\"Welcome, user1!\");"),
+      ln("dim", "  }")
+    ];
+
     var testLines = [];
-    if (skill) {
-      testLines.push(ln("ok", "// расширил существующий класс"));
+    if (skill && ctx) {
+      testLines = happyPathLines.slice();
+      if (!adr) {
+        testLines.splice(1, 0,
+          ln("bad", "@Layer(\"screenshot\")"),
+          ln("bad", "// нет ADR 005 — screenshot не слой")
+        );
+      }
+    } else if (skill) {
+      testLines.push(ln("bad", "// живой LoginTests не видел — некуда дописать"));
       testLines.push(ln("dim", ""));
-      testLines.push(ln("ok", "@Layer(\"e2e\")"));
       if (!adr) {
         testLines.push(ln("bad", "@Layer(\"screenshot\")"));
         testLines.push(ln("bad", "// нет ADR 005 — screenshot не слой"));
+      } else {
+        testLines.push(ln("ok", "@Layer(\"e2e\")"));
       }
-      testLines.push(ln("ok", "@Epic(\"Authentication\")"));
-      testLines.push(ln("ok", "@Feature(\"Login\")"));
-      testLines.push(ln("ok", "class LoginTests extends TestBase {"));
+      testLines.push(ln("bad", "class LoginTests {"));
+      testLines.push(ln("bad", "  // extends TestBase / @Epic / happy path — не видел"));
     } else {
       testLines.push(ln("bad", "// новый файл, не LoginTests"));
       testLines.push(ln("dim", ""));
@@ -269,7 +304,16 @@
     }
 
     testLines.push(ln(skill ? "ok" : "dim", "  @DisplayName(\"Wrong password shows readable error\")"));
+    if (!rag) {
+      testLines.push(ln("bad", "  @Step(\"Wrong password\")"));
+      testLines.push(ln("bad", "  // @Step на @Test — в каноне на PO"));
+    }
     testLines.push(ln(skill ? "ok" : "dim", "  void " + method + "() {"));
+
+    if (skill && !ctx) {
+      testLines.push(ln("bad", "    LoginPage loginPage = new LoginPage();"));
+      testLines.push(ln("bad", "    // TestBase не открывал — loginPage не поле"));
+    }
 
     if (rag) {
       if (!rule) {
@@ -301,6 +345,7 @@
         testLines.push(ln("bad", "    loginPage.openPage()"));
         testLines.push(ln("bad", "        .setUser(\"user1\").setPass(\"123\").clickLogin();"));
       }
+      testLines.push(ln("bad", "    Allure.step(\"invalid login\");"));
       testLines.push(ln("bad", "    $(\".alert\").shouldHave(text(\"Invalid credentials\"));"));
     } else {
       testLines.push(ln("bad", "    WebDriver d = new ChromeDriver();"));
@@ -309,6 +354,7 @@
         testLines.push(ln("ok", "    open(\"/login\");"));
         testLines.push(ln("ok", "    // URL не в Java"));
       }
+      testLines.push(ln("bad", "    Allure.step(\"fill inputs\");"));
       testLines.push(ln("bad", "    $(\"input\").setValue(\"user1\");"));
       testLines.push(ln("bad", "    $(\"input[type=password]\").setValue(\"wrong\");"));
       testLines.push(ln("bad", "    $(\"button\").click();"));
@@ -320,32 +366,105 @@
 
     var pageLines;
     var pageKind;
-    if (rag) {
+    if (rag && ctx) {
       pageKind = "ok";
       pageLines = [
-        ln("ok", "// расширил LoginPage"),
+        ln("dim", "class LoginPage {"),
         ln("dim", ""),
-        ln("ok", "class LoginPage {"),
+        ln("dim", "  loginInput    = $(\"[data-testid='login-input']\");"),
+        ln("dim", "  passwordInput = $(\"[data-testid='password-input']\");"),
+        ln("dim", "  submitButton  = $(\"[data-testid='submit-button']\");"),
+        ln("ok", "  errorMessage  = $(\"[data-testid='error-message']\");"),
         ln("dim", ""),
-        ln("ok", "  errorMessage = $(\"[data-testid='error-message']\");"),
+        ln("dim", "  @Step(\"Open login page\")"),
+        ln("dim", "  LoginPage openPage() {"),
+        ln("dim", "    open(\"/login\");"),
+        ln("dim", "    return this;"),
+        ln("dim", "  }"),
         ln("dim", ""),
+        ln("dim", "  @Step(\"Fill and submit form\")"),
+        ln("dim", "  HomePage fillAndSubmitForm(String username, String password) {"),
+        ln("dim", "    typeUsername(username).typePassword(password).submit();"),
+        ln("dim", "    return new HomePage();"),
+        ln("dim", "  }"),
+        ln("dim", ""),
+        ln("dim", "  @Step(\"Type username: {username}\")"),
+        ln("dim", "  LoginPage typeUsername(String username) {"),
+        ln("dim", "    loginInput.setValue(username);"),
+        ln("dim", "    return this;"),
+        ln("dim", "  }"),
+        ln("dim", ""),
+        ln("dim", "  @Step(\"Type password\")"),
+        ln("dim", "  LoginPage typePassword(String password) {"),
+        ln("dim", "    passwordInput.setValue(password);"),
+        ln("dim", "    return this;"),
+        ln("dim", "  }"),
+        ln("dim", ""),
+        ln("ok", "  @Step(\"Submit expecting error\")"),
         ln("ok", "  LoginPage submitExpectingError() {"),
         ln("ok", "    submitButton.click();"),
         ln("ok", "    errorMessage.shouldBe(visible);"),
         ln("ok", "    return this;"),
         ln("dim", "  }"),
         ln("dim", ""),
+        ln("ok", "  @Step(\"Verify error: {message}\")"),
         ln("ok", "  LoginPage shouldHaveErrorMessage(String message) {"),
         ln("ok", "    errorMessage.shouldHave(text(message));"),
         ln("ok", "    return this;"),
         ln("dim", "  }"),
         ln("dim", "}")
       ];
+    } else if (rag) {
+      pageKind = "bad";
+      pageLines = [
+        ln("bad", "// живой LoginPage не видел — собрал по RAG"),
+        ln("dim", "class LoginPage {"),
+        ln("dim", ""),
+        ln("ok", "  loginInput    = $(\"[data-testid='login-input']\");"),
+        ln("ok", "  passwordInput = $(\"[data-testid='password-input']\");"),
+        ln("ok", "  submitButton  = $(\"[data-testid='submit-button']\");"),
+        ln("ok", "  errorMessage  = $(\"[data-testid='error-message']\");"),
+        ln("dim", ""),
+        ln("ok", "  @Step(\"Open login page\")"),
+        ln("ok", "  LoginPage openPage() {"),
+        ln("ok", "    open(\"/login\");"),
+        ln("ok", "    return this;"),
+        ln("ok", "  }"),
+        ln("dim", ""),
+        ln("ok", "  @Step(\"Type username: {username}\")"),
+        ln("ok", "  LoginPage typeUsername(String username) {"),
+        ln("ok", "    loginInput.setValue(username);"),
+        ln("ok", "    return this;"),
+        ln("ok", "  }"),
+        ln("dim", ""),
+        ln("ok", "  @Step(\"Type password\")"),
+        ln("ok", "  LoginPage typePassword(String password) {"),
+        ln("ok", "    passwordInput.setValue(password);"),
+        ln("ok", "    return this;"),
+        ln("ok", "  }"),
+        ln("dim", ""),
+        ln("ok", "  @Step(\"Submit expecting error\")"),
+        ln("ok", "  LoginPage submitExpectingError() {"),
+        ln("ok", "    submitButton.click();"),
+        ln("ok", "    errorMessage.shouldBe(visible);"),
+        ln("ok", "    return this;"),
+        ln("ok", "  }"),
+        ln("dim", ""),
+        ln("ok", "  @Step(\"Verify error: {message}\")"),
+        ln("ok", "  LoginPage shouldHaveErrorMessage(String message) {"),
+        ln("ok", "    errorMessage.shouldHave(text(message));"),
+        ln("ok", "    return this;"),
+        ln("ok", "  }"),
+        ln("dim", ""),
+        ln("bad", "  // fillAndSubmitForm как в репо — не видел"),
+        ln("dim", "}")
+      ];
     } else if (ctx) {
       pageKind = "bad";
       pageLines = [
-        ln("dim", "// не расширил LoginPage — срисовал happy path"),
-        ln("dim", ""),
+        ln("bad", "@Epic(\"Authentication\")"),
+        ln("bad", "@Step()"),
+        ln("bad", "// аннотации с LoginTests, пустой @Step на классе"),
         ln("dim", "class LoginPage {"),
         ln("dim", ""),
         ln("dim", "  HomePage fillAndSubmitForm(String username, String password) {"),
@@ -353,16 +472,19 @@
         ln("dim", "    return new HomePage();"),
         ln("dim", "  }"),
         ln("dim", ""),
+        ln("bad", "  @Step(\"Type password: {password}\")"),
+        ln("bad", "  // пароль в Allure — в каноне без {password}"),
+        ln("dim", ""),
         ln("bad", "  // errorMessage — не добавил"),
         ln("bad", "  // submitExpectingError() — не добавил"),
-        ln("bad", "  // shouldHaveErrorMessage(String message) — не добавил"),
+        ln("bad", "  // @Step на error-path — не добавил"),
         ln("dim", "}")
       ];
     } else if (skill) {
       pageKind = "bad";
       pageLines = [
-        ln("bad", "// навыдумал PO — локаторы не вынес"),
-        ln("dim", ""),
+        ln("bad", "@Step()"),
+        ln("bad", "// на классе и пустой — в каноне на методах"),
         ln("bad", "class LoginPage {"),
         ln("dim", ""),
         ln("bad", "  LoginPage setUser(String username) {"),
@@ -374,6 +496,7 @@
         ln("bad", "    return this;"),
         ln("dim", "  }"),
         ln("bad", "  void clickLogin() {"),
+        ln("bad", "    Allure.step(\"click\");"),
         ln("bad", "    $(\"button\").click();"),
         ln("dim", "  }"),
         ln("dim", "}")
@@ -381,13 +504,14 @@
     } else {
       pageKind = "bad";
       pageLines = [
-        ln("dim", "// LoginPage не открывал"),
-        ln("dim", ""),
         ln("dim", "// локаторы не вынес — CSS в *Tests:"),
         ln("bad", "$(\"input\")"),
         ln("bad", "$(\"input[type=password]\")"),
         ln("bad", "$(\"button\")"),
-        ln("bad", "$(\".err\")")
+        ln("bad", "$(\".err\")"),
+        ln("dim", ""),
+        ln("bad", "Allure.step(\"fill form\")"),
+        ln("bad", "// шаг в тесте, PO нет")
       ];
     }
 
@@ -396,12 +520,11 @@
     if (ctx) {
       homeKind = "ok";
       homeLines = [
-        ln("dim", "// не трогал — Welcome уже на HomePage"),
-        ln("dim", ""),
         ln("dim", "class HomePage {"),
         ln("dim", ""),
         ln("dim", "  welcomeMessage = $(\"[data-testid='welcome-message']\");"),
         ln("dim", ""),
+        ln("dim", "  @Step(\"Verify welcome message: {message}\")"),
         ln("dim", "  HomePage shouldHaveWelcomeMessage(String message) {"),
         ln("dim", "    welcomeMessage.shouldHave(text(message));"),
         ln("dim", "    return this;"),
@@ -411,9 +534,30 @@
     } else {
       homeKind = "bad";
       homeLines = [
-        ln("dim", "// HomePage не открывал"),
-        ln("dim", ""),
         ln("bad", "// shouldHaveWelcomeMessage — не видел, откуда Welcome")
+      ];
+    }
+
+    var baseKind;
+    var baseLines;
+    if (ctx) {
+      baseKind = "ok";
+      baseLines = [
+        ln("dim", "protected LoginPage loginPage = new LoginPage();"),
+        ln("dim", ""),
+        ln("dim", "@BeforeAll"),
+        ln("dim", "static void setup() {"),
+        ln("dim", "  Configuration.baseUrl = ConfigReader.resolveWebBaseUrl();"),
+        ln("dim", "  Configuration.browser = config.browser();"),
+        ln("dim", "  Configuration.browserSize = config.browserSize();"),
+        ln("dim", "  Configuration.headless = config.headless();"),
+        ln("dim", "}"),
+        ln("dim", "// не new ChromeDriver() в тесте")
+      ];
+    } else {
+      baseKind = "bad";
+      baseLines = [
+        ln("bad", "// loginPage / Configuration — не видел")
       ];
     }
 
@@ -439,8 +583,11 @@
     }
 
     runLines.push(ln("dim", ""));
-    if (n === 4) {
+    if (n === 4 && ctx) {
       runLines.push(ln("ok", "# e2e · pipeline / stage / prod · exit 0 · нет commit"));
+      runLines.push(ln("ok", "# 401 уже в AuthApiTests, не трогаем"));
+    } else if (n === 4) {
+      runLines.push(ln("bad", "# слои сказали как гонять, живой класс не видел"));
       runLines.push(ln("ok", "# 401 уже в AuthApiTests, не трогаем"));
     } else if (skill) {
       runLines.push(ln("ok", "# skill хотя бы сказал слой и DoD"));
@@ -455,30 +602,48 @@
     if (rag) {
       gradleKind = "ok";
       gradleLines = [
-        ln("ok", "// не трогал — версии как в репо"),
-        ln("dim", ""),
         ln("ok", "javaVersion     = 21"),
-        ln("ok", "junitVersion    = \"5.11.4\""),
-        ln("ok", "selenideVersion = \"7.17.0\""),
-        ln("ok", "allureVersion   = \"3.13.0\""),
-        ln("ok", "ownerVersion    = \"1.0.12\""),
+        ln("ok", "junitVersion    = '5.11.4'"),
+        ln("ok", "selenideVersion = '7.17.0'"),
+        ln("ok", "allureVersion   = '3.13.0'"),
+        ln("ok", "ownerVersion    = '1.0.12'"),
         ln("dim", ""),
-        ln("ok", "testImplementation selenide, junit-jupiter,"),
-        ln("ok", "                   allure-selenide, owner"),
-        ln("ok", "// task testE2e нет")
+        ln("ok", "testImplementation ("),
+        ln("ok", "  \"com.codeborne:selenide:${selenideVersion}\","),
+        ln("ok", "  \"org.junit.jupiter:junit-jupiter:${junitVersion}\","),
+        ln("ok", "  \"io.qameta.allure:allure-selenide\","),
+        ln("ok", "  \"org.aeonbits.owner:owner:${ownerVersion}\""),
+        ln("ok", ")"),
+        ln("dim", ""),
+        ln("ok", "test {"),
+        ln("ok", "  useJUnitPlatform {"),
+        ln("ok", "    def includeTagsProp = System.getProperty('includeTags')"),
+        ln("ok", "    if (includeTagsProp) {"),
+        ln("ok", "      includeTags(*(includeTagsProp.split(',')*.trim()))"),
+        ln("ok", "    }"),
+        ln("ok", "    def excludeTagsProp = System.getProperty('excludeTags')"),
+        ln("ok", "    if (excludeTagsProp) {"),
+        ln("ok", "      excludeTags(*(excludeTagsProp.split(',')*.trim()))"),
+        ln("ok", "    }"),
+        ln("ok", "  }"),
+        ln("ok", "  systemProperty 'env', testEnv"),
+        ln("ok", "}")
       ];
     } else {
       gradleKind = "bad";
       gradleLines = [
-        ln("bad", "// навыдумал task — в репо его нет"),
-        ln("dim", ""),
         ln("bad", "task testE2e(type: Test) { useJUnitPlatform() }"),
         ln("dim", ""),
-        ln("dim", "// в репо:"),
-        ln("ok", "junitVersion    = \"5.11.4\""),
-        ln("ok", "selenideVersion = \"7.17.0\""),
-        ln("ok", "allureVersion   = \"3.13.0\""),
-        ln("ok", "// task testE2e нет")
+        ln("dim", "// в репо срез = -DincludeTags, не отдельный task:"),
+        ln("ok", "test {"),
+        ln("ok", "  useJUnitPlatform {"),
+        ln("ok", "    def includeTagsProp = System.getProperty('includeTags')"),
+        ln("ok", "    if (includeTagsProp) {"),
+        ln("ok", "      includeTags(*(includeTagsProp.split(',')*.trim()))"),
+        ln("ok", "    }"),
+        ln("ok", "  }"),
+        ln("ok", "  systemProperty 'env', testEnv"),
+        ln("ok", "}")
       ];
     }
 
@@ -487,23 +652,15 @@
     if (rule) {
       propsKind = "ok";
       propsLines = [
-        ln("ok", "# не трогал — URL не в Java"),
-        ln("dim", ""),
-        ln("ok", "# default.properties"),
-        ln("ok", "baseUrl="),
+        ln("ok", "baseUrl=http://localhost:9821/"),
         ln("ok", "browser=chrome"),
         ln("ok", "browserVersion=148"),
         ln("ok", "browserSize=1920x1280"),
-        ln("ok", "remoteUrl="),
-        ln("dim", ""),
-        ln("ok", "# ci.properties  (-Denv=ci)"),
-        ln("ok", "baseUrl=http://localhost:9821/")
+        ln("ok", "headless=true")
       ];
     } else {
       propsKind = "bad";
       propsLines = [
-        ln("bad", "# захардкодил стенд в default"),
-        ln("dim", ""),
         ln("bad", "baseUrl=http://localhost:9821/"),
         ln("dim", ""),
         ln("bad", "# -Denv= не читал"),
@@ -516,8 +673,6 @@
     if (rag && rule) {
       ciKind = "ok";
       ciLines = [
-        ln("ok", "# не трогал — два флага"),
-        ln("dim", ""),
         ln("ok", "e2e-tests:"),
         ln("ok", "  env:"),
         ln("ok", "    LAYER: e2e"),
@@ -533,8 +688,6 @@
     } else if (!rag) {
       ciKind = "bad";
       ciLines = [
-        ln("bad", "# навыдумал job testE2e"),
-        ln("dim", ""),
         ln("bad", "e2e:"),
         ln("bad", "  steps:"),
         ln("bad", "    - run: ./gradlew testE2e"),
@@ -548,8 +701,6 @@
     } else {
       ciKind = "bad";
       ciLines = [
-        ln("bad", "# нет -Denv= — стенд не выбирает"),
-        ln("dim", ""),
         ln("ok", "e2e-tests:"),
         ln("ok", "  steps:"),
         ln("ok", "    - uses: ./tests/.github/actions/e2e"),
@@ -582,41 +733,53 @@
     var mainTestLines;
     var mainTestKind;
     if (skill) {
-      mainTestKind = rag && adr && rule ? "ok" : "bad";
+      mainTestKind = rag && adr && rule && ctx ? "ok" : "bad";
       mainTestLines = testLines;
-    } else {
+    } else if (!ctx) {
       mainTestKind = "bad";
       mainTestLines = [
-        ln("bad", "// не расширил существующий класс"),
+        ln("bad", "// LoginTests.java не видел"),
         ln("dim", ""),
-        ln("dim", "@Layer(\"e2e\")"),
-        ln("dim", "@Epic(\"Authentication\")"),
-        ln("dim", "@Feature(\"Login\")"),
-        ln("dim", "class LoginTests extends TestBase {"),
-        ln("dim", ""),
-        ln("dim", "  @Test"),
-        ln("dim", "  @Tag(\"e2e\")"),
-        ln("dim", "  @Tag(\"smoke\")"),
-        ln("dim", "  @Tag(\"positive\")"),
-        ln("dim", "  @DisplayName(\"User is logged in with valid credentials\")"),
-        ln("dim", "  void shouldLoginWithValidCredentials() {"),
-        ln("dim", "    loginPage.openPage()"),
-        ln("dim", "        .fillAndSubmitForm(\"user1\", \"password1\")"),
-        ln("dim", "        .shouldHaveWelcomeMessage(\"Welcome, user1!\");"),
-        ln("dim", "  }"),
+        ln("bad", "// shouldShowErrorWhenPasswordIsWrong — не добавил")
+      ];
+    } else {
+      mainTestKind = "bad";
+      mainTestLines = happyPathLines.concat([
         ln("bad", "  // shouldShowErrorWhenPasswordIsWrong — не добавил"),
         ln("dim", "}")
-      ];
+      ]);
     }
 
+    var testLoad = skill
+      ? (ctx ? "расширил существующий класс" : "написал LoginTests по skill, живой файл не видел")
+      : (ctx ? "не расширил существующий класс" : "LoginTests не открывал");
+    var pageLoad = rag
+      ? (ctx ? "расширил LoginPage · @Step на методах" : "собрал LoginPage по RAG, вкладку не открывал")
+      : ctx
+        ? "не расширил LoginPage — срисовал happy path"
+        : skill
+          ? "навыдумал PO — локаторы не вынес"
+          : "LoginPage не открывал";
+    var homeLoad = ctx ? "не трогал — Welcome уже на HomePage" : "HomePage не открывал";
+    var baseLoad = ctx ? "не трогал — loginPage уже в TestBase" : "TestBase не открывал";
+    var propsLoad = rule ? "не трогал — URL не в Java" : "захардкодил URL в ci.properties";
+    var gradleLoad = rag ? "не трогал — как в репо" : "навыдумал task — в репо его нет";
+    var cliLoad = "прогон из шелла, не Java";
+    var ciLoad = rag && rule
+      ? "не трогал — два флага"
+      : !rag
+        ? "навыдумал job testE2e"
+        : "нет -Denv= — стенд не выбирает";
+
     var panels = withExtras([
-      panel("test", "test · LoginTests.java", mainTestKind, mainTestLines),
-      panel("page", "page · LoginPage.java", pageKind, pageLines),
-      panel("home", "page · HomePage.java", homeKind, homeLines),
-      panel("gradle", "build · build.gradle", gradleKind, gradleLines),
-      panel("props", "props · default.properties", propsKind, propsLines),
-      panel("ci", "ci · ci.yml", ciKind, ciLines),
-      panel("cli", "cli · терминал", rule && skill && rag ? "ok" : "bad", runLines)
+      panel("test", "test · LoginTests.java", mainTestKind, mainTestLines, "", testLoad),
+      panel("page", "page · LoginPage.java", pageKind, pageLines, "", pageLoad),
+      panel("home", "page · HomePage.java", homeKind, homeLines, "", homeLoad),
+      panel("base", "base · TestBase.java", baseKind, baseLines, "", baseLoad),
+      panel("props", "props · ci.properties", propsKind, propsLines, "", propsLoad),
+      panel("gradle", "build · build.gradle", gradleKind, gradleLines, "", gradleLoad),
+      panel("cli", "cli · терминал", rule && skill && rag ? "ok" : "bad", runLines, "", cliLoad),
+      panel("ci", "ci · ci.yml", ciKind, ciLines, "", ciLoad)
     ], extras);
 
     return pack(panels);
@@ -676,10 +839,10 @@
       gaps.push({
         layer: "ctx",
         title: n === 0 ? "не увидел, что это Java" : "нет живого образца",
-        ideal: "Открыты LoginTests (happy path), LoginPage (форма, fillAndSubmitForm → HomePage) и HomePage (shouldHaveWelcomeMessage). errorMessage и error-path методов на вкладке LoginPage нет.",
+        ideal: "Открыты LoginTests (happy path), LoginPage (форма, @Step на методах, fillAndSubmitForm → HomePage) и HomePage (shouldHaveWelcomeMessage). errorMessage и error-path методов на вкладке LoginPage нет.",
         expected: n === 0
           ? "pytest + ChromeDriver + localhost:3000. В этом репо такого файла нет."
-          : "Слои читает, но не видит, как уже написан тест и PO — не на что опереться.",
+          : "Слои читает, но живой LoginTests не видел: класс с нуля, new LoginPage(), happy path не сохранил.",
         why: "Context — открытые вкладки, не skill и не rule. Без них агент не знает «как устроено здесь»."
       });
     }
@@ -687,7 +850,7 @@
       gaps.push({
         layer: "skill",
         title: "новый класс, без «как гонять»",
-        ideal: "Дописал LoginTests#shouldShowErrorWhenPasswordIsWrong. Прогон: -Dtest=LoginTests#метод. DoD: слой, стенды, exit, без commit.",
+        ideal: "Дописал LoginTests#shouldShowErrorWhenPasswordIsWrong. Прогон: -Dtest=LoginTests#метод. DoD: слой, стенды, @Step на PO, exit, без commit.",
         expected: "Новый LoginSadPathTests / testWrongPassword. Гоняет всё подряд. Не сказал ни слой, ни стенды, ни exit.",
         why: "Skill отвечает на «как». Без него агент изобретает файл и ритуал прогона."
       });
@@ -697,27 +860,27 @@
         layer: "rule",
         title: "весь suite, commit, URL в Java",
         ideal: "Не commit / push без OK. URL только из properties. Всегда -Denv=. Один task = один метод.",
-        expected: "git commit сам. ./gradlew test на весь suite. URL захардкожен в Java или в default.properties.",
+        expected: "git commit сам. ./gradlew test на весь suite. URL захардкожен в Java или в ci.properties.",
         why: "Rule — «нельзя». Skill может сказать как писать тест, но без ПДД агент сам коммитит и не выбирает стенд."
       });
     }
     if (!s.rag) {
       var ragExpected;
       if (s.ctx) {
-        ragExpected = "fillAndSubmitForm(\"user1\", \"wrongpassword\") и Welcome — срисовал вкладку. submitExpectingError в PO не появился. Или $(\".alert\") + «Invalid credentials». Навыдумал task testE2e.";
+        ragExpected = "fillAndSubmitForm(\"user1\", \"wrongpassword\") и Welcome — срисовал вкладку. @Epic/@Step() на класс LoginPage. @Step(\"Type password: {password}\"). @Step на @Test. submitExpectingError в PO не появился. Или $(\".alert\") + «Invalid credentials». Навыдумал task testE2e.";
       } else if (n === 0) {
         ragExpected = "driver.find_element(\"input\"), assert «Invalid credentials».";
       } else {
-        ragExpected = "$(\"input\") / $(\"#login\") и «Invalid credentials». task testE2e.";
+        ragExpected = "$(\"input\") / $(\"#login\"), Allure.step в тесте, «Invalid credentials». @Step() на классе PO. task testE2e.";
       }
       gaps.push({
         layer: "rag",
-        title: s.ctx ? "срисовал happy path" : (n === 0 ? "селекторы с потолка, pytest" : "выдумал CSS и текст ошибки"),
-        ideal: "В LoginPage появляются errorMessage, submitExpectingError и shouldHaveErrorMessage. Текст «Wrong login or password». HomePage не трогает. task testE2e нет. Стенды pipeline / stage / prod.",
+        title: s.ctx ? "срисовал happy path и перепутал @Step" : (n === 0 ? "селекторы с потолка, pytest" : "выдумал CSS, Allure.step, текст ошибки"),
+        ideal: "В LoginPage: errorMessage, @Step на submitExpectingError и shouldHaveErrorMessage — на методах, не на классе. Пароль не в тексте шага. Не Allure.step в *Tests. Текст «Wrong login or password». HomePage не трогает. task testE2e нет. Стенды pipeline / stage / prod.",
         expected: ragExpected,
         why: s.ctx
-          ? "Без RAG смотрит на вкладку и копирует fillAndSubmitForm. Error-path в PO не дописывает."
-          : "RAG — факт: как расширить PO, текст ошибки, как гоняют. Без карточек агент копирует то, что видит, или врёт."
+          ? "Без RAG смотрит на вкладку: копирует fillAndSubmitForm, вешает @Step на класс как у LoginTests, тащит {password} в Allure."
+          : "RAG — факт: как расширить PO, куда ставить @Step, текст ошибки, как гоняют. Без карточек агент копирует то, что видит, или врёт."
       });
     }
     if (!s.adr) {
@@ -734,79 +897,151 @@
 
   function paintPanels(el, panels, extra) {
     if (!el) return;
-    el.className = "lab-out" + (extra ? " is-extra" : "");
+    el.classList.toggle("is-extra", !!extra);
     el.innerHTML = panels
       .map(function (p) {
         var cls = "panel lab-file" + (p.kind === "ok" ? " panel--good" : " panel--bad") + (p.extraOf ? " lab-file--extra" : "");
         return (
           '<section class="' + cls + '" data-slot="' + p.id + '"' + (p.extraOf ? ' data-extra="' + p.extraOf + '"' : "") + '>' +
-            '<div class="panel__bar">' +
+            '<header class="panel__bar">' +
               '<span class="dots"><i class="dot dot--r"></i><i class="dot dot--y"></i><i class="dot dot--g"></i></span>' +
               '<p class="panel__title">' + esc(p.title) + "</p>" +
+            "</header>" +
+            '<div class="panel__body lab-code-wrap">' +
+              (p.load ? '<p class="lab-src__load">' + esc(p.load) + "</p>" : "") +
+              '<pre class="lab-code">' + paintLines(p.lines) + "</pre>" +
             "</div>" +
-            '<div class="panel__body lab-code-wrap"><pre class="lab-code">' + paintLines(p.lines) + "</pre></div>" +
           "</section>"
         );
       })
       .join("");
   }
 
-  function paintWhy(el, why, holds) {
+  function holdsHtml(holds, sub) {
+    if (!holds.length) return "";
+    return (
+      '<div class="lab-why__holds">' +
+      '<h3 class="lab-why__sub">' +
+      sub +
+      "</h3><ul class=\"lab-list\">" +
+      holds
+        .map(function (item) {
+          return "<li>" + pill(item.layer, true) + " " + esc(item.text) + "</li>";
+        })
+        .join("") +
+      "</ul></div>"
+    );
+  }
+
+  function onLayersLead(s) {
+    var parts = [];
+    if (s.skill) parts.push("Skill");
+    if (s.rule) parts.push("Rule");
+    if (s.rag) parts.push("RAG");
+    if (s.adr) parts.push("ADR");
+    var tabs = s.ctx ? "Вкладки открыты" : "Вкладки закрыты";
+    if (parts.length === 4 && s.ctx) {
+      return "Вкладки открыты, Skill / Rule / RAG / ADR на месте.";
+    }
+    if (!parts.length) return tabs + ", слоёв нет.";
+    return tabs + ", на месте: " + parts.join(" / ") + ".";
+  }
+
+  function paintIdealWhy(el, holds) {
     if (!el) return;
+    el.innerHTML = holdsHtml(holds, "что держит");
+  }
+
+  function gapCard(g, skipIdeal) {
+    return (
+      '<article class="lab-gap lab-gap--' + g.layer + '">' +
+        '<header class="lab-gap__hd">' + pill(g.layer, false) +
+          '<h3 class="lab-gap__title">' + esc(g.title) + "</h3></header>" +
+        (skipIdeal ? "" : '<p class="lab-gap__ideal"><span>идеал</span> ' + esc(g.ideal) + "</p>") +
+        '<p class="lab-gap__got"><span>ожидаемо</span> ' + esc(g.expected) + "</p>" +
+        '<p class="lab-gap__why">' + esc(g.why) + "</p>" +
+      "</article>"
+    );
+  }
+
+  function paintCtxWhy(el, s, why) {
+    if (!el) return;
+    if (s.ctx) {
+      el.innerHTML = holdsHtml(
+        [{ layer: "ctx", text: "открыты LoginTests, LoginPage и HomePage" }],
+        "что видит"
+      );
+      return;
+    }
+    var g = why.gaps.filter(function (x) { return x.layer === "ctx"; })[0];
+    el.innerHTML = g ? '<div class="lab-why__gaps">' + gapCard(g, true) + "</div>" : "";
+  }
+
+  function paintWhy(el, why) {
+    if (!el) return;
+    var gaps = why.gaps.filter(function (g) { return g.layer !== "ctx"; });
     var html = "";
     if (why.match) {
       html += '<p class="lab-why__ok">Ожидаемый совпадает с идеальным: вкладки открыты, все четыре слоя на месте.</p>';
+    } else if (!gaps.length) {
+      html += '<p class="lab-why__note">Дыр в Skill / Rule / RAG / ADR нет — ломает сцена, не слой.</p>';
     }
-    html += why.gaps
-      .map(function (g) {
-        return (
-          '<article class="lab-gap lab-gap--' + g.layer + '">' +
-            '<header class="lab-gap__hd">' + pill(g.layer, false) +
-              '<h3 class="lab-gap__title">' + esc(g.title) + "</h3></header>" +
-            '<p class="lab-gap__ideal"><span>идеал</span> ' + esc(g.ideal) + "</p>" +
-            '<p class="lab-gap__got"><span>ожидаемо</span> ' + esc(g.expected) + "</p>" +
-            '<p class="lab-gap__why">' + esc(g.why) + "</p>" +
-          "</article>"
-        );
-      })
-      .join("");
-    if (holds.length) {
+    if (gaps.length) {
       html +=
-        '<h3 class="lab-why__sub">' +
-        (why.match ? "что держит" : "что ещё ок") +
-        "</h3><ul class=\"lab-list\">" +
-        holds
-          .map(function (item) {
-            return "<li>" + pill(item.layer, true) + " " + esc(item.text) + "</li>";
-          })
-          .join("") +
-        "</ul>";
+        '<div class="lab-why__gaps">' +
+        gaps.map(function (g) { return gapCard(g, true); }).join("") +
+        "</div>";
     }
     el.innerHTML = html;
+  }
+
+  var SLOTS = ["test", "page", "home", "base", "props", "gradle", "cli", "ci"];
+
+  function panelsForSlot(panels, slot) {
+    return panels.filter(function (p) {
+      return p.id === slot || p.extraOf === slot;
+    });
+  }
+
+  function paintSide(side, panels) {
+    SLOTS.forEach(function (slot) {
+      var cell = document.querySelector('.lab-cell--' + side + '[data-slot="' + slot + '"]');
+      var mine = panelsForSlot(panels, slot);
+      paintPanels(cell, mine, mine.some(function (p) { return !!p.extraOf; }));
+    });
   }
 
   function render() {
     var out = compose(state);
     var ideal = compose(FULL);
     var why = explain(state);
-    var outEl = document.getElementById("lab-out");
-    var idealEl = document.getElementById("lab-ideal");
     var whyEl = document.getElementById("lab-why");
+    var whyIdealEl = document.getElementById("lab-why-ideal");
+    var whyCtxEl = document.getElementById("lab-why-ctx");
+    var expectedLead = document.getElementById("lab-why-expected-lead");
     var whyDiag = document.getElementById("lab-why-diag");
+    var ctxDiag = document.getElementById("lab-why-ctx-diag");
     var count = document.getElementById("lab-count");
     var expectedCol = document.getElementById("lab-expected-col");
     var whyCol = document.getElementById("lab-why-col");
+    var ctxCol = document.getElementById("lab-why-ctx-col");
 
-    paintPanels(idealEl, ideal.panels, false);
-    paintPanels(
-      outEl,
-      out.panels,
-      out.panels.some(function (p) { return !!p.extraOf; })
-    );
-    paintWhy(whyEl, why, out.holds);
+    paintSide("ideal", ideal.panels);
+    paintSide("expected", out.panels);
+    paintIdealWhy(whyIdealEl, ideal.holds);
+    paintCtxWhy(whyCtxEl, state, why);
+    paintWhy(whyEl, why);
+    if (expectedLead) expectedLead.textContent = onLayersLead(state);
 
     if (expectedCol) expectedCol.classList.toggle("is-match", why.match);
     if (whyCol) whyCol.classList.toggle("is-match", why.match);
+    if (ctxCol) ctxCol.classList.toggle("is-off", !state.ctx);
+
+    if (ctxDiag) {
+      ctxDiag.textContent = state.ctx ? "читает вкладки." : "вкладки закрыты.";
+      ctxDiag.classList.toggle("is-ok", !!state.ctx);
+      ctxDiag.classList.toggle("is-bad", !state.ctx);
+    }
 
     if (whyDiag) {
       whyDiag.textContent = out.verdict;
@@ -855,6 +1090,12 @@
     render();
   }
 
+  function unpinAll() {
+    document.querySelectorAll(".lab-src.is-pinned").forEach(function (el) {
+      el.classList.remove("is-pinned");
+    });
+  }
+
   function bind() {
     document.querySelectorAll("[data-layer]").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -886,12 +1127,29 @@
         render();
       });
     });
+    document.querySelectorAll(".lab-src__hd").forEach(function (hd) {
+      hd.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var src = hd.closest(".lab-src");
+        if (!src) return;
+        var on = src.classList.contains("is-pinned");
+        unpinAll();
+        if (!on) src.classList.add("is-pinned");
+      });
+    });
     document.querySelectorAll(".lab-src__pop").forEach(function (pop) {
       pop.addEventListener("click", function (e) {
         e.stopPropagation();
       });
     });
+    document.addEventListener("click", function () {
+      unpinAll();
+    });
     document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        unpinAll();
+        return;
+      }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       var k = HASH_TO_LAYER[e.key.toLowerCase()];
       if (!k) return;

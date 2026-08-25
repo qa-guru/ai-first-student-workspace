@@ -60,7 +60,7 @@
 - [33 · пары](index.html#33-login-pairs) — 2 из 4
 - [34 · одиночки / пусто](index.html#34-login-singles) — 1 из 4 и «учебный интернет»
 - [35 · context ≠ слой](index.html#35-login-context) — открытый канон кормит копипаст
-- [36 · лаборатория](36-login-lab.html) — тумблеры Skill / Rule / RAG / ADR / Context, сразу видно код галлюцинации (не A4, не PDF). Java в колонках — `white-space: pre` + скролл, не `pre-wrap` (`check-lab-wrap.py`).
+- [36 · лаборатория](36-login-lab.html) — тумблеры Skill / Rule / RAG / ADR / Context, сразу видно код галлюцинации (не A4, не PDF). Сравнение по рядам файла (test → page → …), Java — `white-space: pre` + скролл, не `pre-wrap` (`check-lab-wrap.py`).
 
 Перед live закомментируй `shouldShowErrorWhenPasswordIsWrong`. New Agent после смены слоёв. На занятии достаточно полного стека + «ничего»; пары — с листа. Лаборатория 36 — на проектор: выключаешь слой, краснеют строки.
 
