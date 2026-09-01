@@ -1,5 +1,5 @@
-import { Button, Panel } from '@zero-design-system/react';
-import { useEffect, useState } from 'react';
+import { Button, Panel, PlaqueField } from '@zero-design-system/react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n';
 import { fetchHealth, fetchItems, type Item } from '../lib/api';
@@ -12,6 +12,8 @@ import {
   getToken,
   logout,
 } from '../lib/auth';
+import { NOTE_MESSAGES } from '../lib/messages';
+import { deleteNote, fetchNote, putNote } from '../lib/note';
 
 type HealthState =
   | { status: 'checking' }
@@ -40,6 +42,12 @@ export function HomePage() {
   const [health, setHealth] = useState<HealthState>({ status: 'checking' });
   const [items, setItems] = useState<ItemsState>({ status: 'loading' });
   const [welcomeName, setWelcomeName] = useState<string | null>(null);
+  const [noteTitle, setNoteTitle] = useState('');
+  const [noteText, setNoteText] = useState('');
+  const [hasNote, setHasNote] = useState(false);
+  const [noteError, setNoteError] = useState('');
+  const [noteBusy, setNoteBusy] = useState(false);
+  const [noteReady, setNoteReady] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -70,9 +78,29 @@ export function HomePage() {
 
     if (getToken()) {
       fetchProfile()
-        .then((profile) => {
-          if (active) {
-            setWelcomeName(profile.username);
+        .then(async (profile) => {
+          if (!active) {
+            return;
+          }
+          setWelcomeName(profile.username);
+          try {
+            const note = await fetchNote();
+            if (!active) {
+              return;
+            }
+            if (note) {
+              setNoteTitle(note.title);
+              setNoteText(note.text);
+              setHasNote(true);
+            }
+          } catch (error) {
+            if (active) {
+              setNoteError(error instanceof Error ? error.message : NOTE_MESSAGES.errorSaveFailed);
+            }
+          } finally {
+            if (active) {
+              setNoteReady(true);
+            }
           }
         })
         .catch(() => {
@@ -98,6 +126,41 @@ export function HomePage() {
     }
     await deleteAccount();
     navigate('/login');
+  };
+
+  const handleSaveNote = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setNoteError('');
+    if (!noteText.trim()) {
+      setNoteError(NOTE_MESSAGES.errorTextRequired);
+      return;
+    }
+    setNoteBusy(true);
+    try {
+      const saved = await putNote(noteTitle, noteText);
+      setNoteTitle(saved.title);
+      setNoteText(saved.text);
+      setHasNote(true);
+    } catch (error) {
+      setNoteError(error instanceof Error ? error.message : NOTE_MESSAGES.errorSaveFailed);
+    } finally {
+      setNoteBusy(false);
+    }
+  };
+
+  const handleDeleteNote = async () => {
+    setNoteError('');
+    setNoteBusy(true);
+    try {
+      await deleteNote();
+      setNoteTitle('');
+      setNoteText('');
+      setHasNote(false);
+    } catch (error) {
+      setNoteError(error instanceof Error ? error.message : NOTE_MESSAGES.errorDeleteFailed);
+    } finally {
+      setNoteBusy(false);
+    }
   };
 
   const healthText =
@@ -145,6 +208,73 @@ export function HomePage() {
         >
           {copy.home.deleteAccount}
         </Button>
+      </Panel>
+
+      <Panel
+        title="Note"
+        testId="note-panel"
+        hidden={welcomeName === null || !noteReady}
+        bodyClassName="multistack__note-body"
+      >
+        <form
+          id="note-form"
+          className="auth-form"
+          data-testid="note-form"
+          onSubmit={handleSaveNote}
+        >
+          <div className="plaque-field-list">
+            <PlaqueField
+              label="Title"
+              id="note-title-input"
+              name="noteTitle"
+              type="text"
+              maxLength={120}
+              data-testid="note-title-input"
+              value={noteTitle}
+              onChange={(e) => setNoteTitle(e.target.value)}
+            />
+            <PlaqueField
+              label="Text"
+              id="note-input"
+              name="noteText"
+              multiline
+              rows={4}
+              maxLength={2000}
+              data-testid="note-input"
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+            />
+          </div>
+          <p
+            className="multistack__error"
+            aria-live="polite"
+            data-testid="note-error"
+            hidden={!noteError}
+          >
+            {noteError}
+          </p>
+          <div className="multistack__note-actions">
+            <Button
+              id="note-save-button"
+              type="submit"
+              variant="primary"
+              data-testid="note-save-button"
+              disabled={noteBusy}
+            >
+              Save
+            </Button>
+            <Button
+              id="note-delete-button"
+              type="button"
+              variant="danger"
+              data-testid="note-delete-button"
+              disabled={noteBusy || !hasNote}
+              onClick={handleDeleteNote}
+            >
+              Delete
+            </Button>
+          </div>
+        </form>
       </Panel>
 
       <Panel title={copy.home.health} testId="health-panel">

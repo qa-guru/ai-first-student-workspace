@@ -32,7 +32,7 @@ uses them yet.
 
 | Route | Screen | Key testids |
 |-------|--------|-------------|
-| `/` | `HomePage` | `multistack-layout`, `health-panel`/`health-status`, `items-list`/`item-row`, `welcome-panel`/`welcome-message`, `logout-button`, `delete-account-button` |
+| `/` | `HomePage` | `multistack-layout`, `health-panel`/`health-status`, `items-list`/`item-row`, `welcome-panel`/`welcome-message`, `logout-button`, `delete-account-button`, `note-panel`/`note-form`/`note-title-input`/`note-input`/`note-save-button`/`note-delete-button`/`note-error` |
 | `/login` | `LoginPage` | `login-panel`, `login-form`, `login-input`, `password-input`, `submit-button`, `error-message`, `register-link`, `login-form-title` |
 | `/register` | `RegisterPage` | `register-panel`, `register-form`, `register-login-input`, `register-password-input`, `confirm-password-input`, `register-submit-button`, `register-error-message`, `login-link`, `register-form-title` |
 
@@ -66,6 +66,8 @@ the API fails — a token the server has already rejected must never keep the UI
 - API payloads (item names, health `status`/`service`, backend error text) are
   not translated. Nav labels follow `header:lang-change` via one `remountHeader`.
 - Theme is owned by `header.js` (`zds-theme`); the SPA does not reimplement it.
+
+Note panel (ADR [`006`](../../../docs/adr/006-one-note-not-list.md)): Save = **PUT** `/api/note`; PATCH с UI нет. Новый UI: skill `fe-add-ui`, ADR [`008`](../../../docs/adr/008-frontend-ds-not-fork.md).
 
 ## Header
 
