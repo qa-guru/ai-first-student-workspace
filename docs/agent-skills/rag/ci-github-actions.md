@@ -59,6 +59,7 @@ gh run cancel <run-id>
 
 ## Don't
 
-- Копировать matrix `ci.yml` поверх takeaway.
+- Копировать etalon `ci.yml` поверх takeaway «собери все SPA матрицей». Takeaway = **один** cell из knobs.
+- `jobs.*.strategy` / `strategy.matrix` в teaching `.github/workflows/ci.yml` (не путать с product `deploy/matrix.yaml` на `/stack/`).
 - Хардкодить `ALLURE_TOKEN` / пароль хаба в YAML.
 - Ждать зелёный `deploy-backend`, если DNS ещё не поднят — смотрите jobs на PR.
