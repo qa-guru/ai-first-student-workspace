@@ -19,6 +19,7 @@ RAG: `ci-github-actions` **или** `ci-jenkins` + `ci-gradle-args`.
 
 - Реран без чтения лога
 - Менять чужой job / matrix YAML
+- Чинить sibling SPA через `strategy.matrix` в teaching `ci.yml` (шапка/nav — в исходнике модуля; compose на хосте)
 - Класть секреты в коммит или в чат
 - Чинить тесты «наугад» без `-Dtest=` (сначала `qa-smoke-debug` / `qa-write-test`)
 - В том же task создавать новый workflow (`qa-create-ci`)

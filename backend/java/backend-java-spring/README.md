@@ -36,6 +36,12 @@ behavioral tests; entity plumbing is executed by the persistence slice, not by r
 | POST | `/api/auth/logout` | — | 204 | empty |
 | GET | `/api/auth/me` | Bearer | 200 | `{"username"}` |
 | DELETE | `/api/auth/me` | Bearer | 204 | empty |
+| PUT | `/api/note` | Bearer | **201** created / **200** replaced | `{"id","title","text"}`; 201 + `Content-Location: /api/note` |
+| GET | `/api/note` | Bearer | 200 | same JSON; **404** если нет |
+| PATCH | `/api/note` | Bearer | 200 | `Content-Type: application/merge-patch+json` |
+| DELETE | `/api/note` | Bearer | 204 | empty; 404 если нет |
+
+Синглтон `/api/note` — ADR [`006`](../../../docs/adr/006-one-note-not-list.md); глаголы — RAG [`crud-http`](../../../docs/agent-skills/rag/crud-http.md). Модуль API-only — ADR [`007`](../../../docs/adr/007-backend-api-only.md). Новый ресурс: skill `be-add-resource`.
 
 Logout is **stateless by design**: it never invalidates the JWT server-side — the token keeps
 verifying until it expires or the account is deleted. `DELETE /api/auth/me` is the authenticated
