@@ -3,6 +3,7 @@
 import '../vendor/ds/css/tokens.css';
 import '../vendor/ds/css/link.css';
 import '../vendor/ds/css/input.css';
+import '../vendor/ds/css/textarea.css';
 import '../vendor/ds/css/icon.css';
 import '../vendor/ds/css/icon-btn.css';
 import '../vendor/ds/css/lang-toggle.css';

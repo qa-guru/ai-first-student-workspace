@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -35,6 +36,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -42,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Feature("AuthController")
 @Severity(SeverityLevel.CRITICAL)
 @WebMvcTest(controllers = AuthController.class)
-@Import({AuthExceptionHandler.class, SecurityConfig.class, CorsConfig.class})
+@Import({AuthExceptionHandler.class, NoteMediaTypeExceptionHandler.class, SecurityConfig.class, CorsConfig.class})
 @DisplayName("AuthController")
 class AuthControllerTest extends SliceTestBase {
 
@@ -185,5 +187,15 @@ class AuthControllerTest extends SliceTestBase {
                         .content("not json"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Request body is not valid JSON"));
+    }
+
+    @Test
+    @DisplayName("POST /api/auth/login 415 does not advertise Accept-Patch from note advice")
+    void loginUnsupportedMediaTypeDoesNotSetAcceptPatch() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content("nope"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(header().doesNotExist(HttpHeaders.ACCEPT_PATCH));
     }
 }

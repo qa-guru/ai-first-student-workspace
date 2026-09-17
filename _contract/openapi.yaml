@@ -120,6 +120,101 @@ paths:
         "401":
           description: Unauthorized
 
+  /api/note:
+    put:
+      operationId: putNote
+      summary: Create or replace the caller's singleton note (RFC 9110 PUT)
+      tags: [note]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotePutRequest"
+      responses:
+        "201":
+          description: Created
+          headers:
+            Content-Location:
+              schema:
+                type: string
+                example: /api/note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NoteDto"
+        "200":
+          description: Replaced
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NoteDto"
+        "400":
+          description: Validation failed
+        "401":
+          description: Unauthorized
+    get:
+      operationId: getNote
+      summary: Read the caller's singleton note
+      tags: [note]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NoteDto"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Caller has no note (including another user's valid JWT)
+    patch:
+      operationId: patchNote
+      summary: Merge-patch a subset of the existing note
+      tags: [note]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: "#/components/schemas/NoteMergePatch"
+      responses:
+        "200":
+          description: Merged (`{}` is a no-op)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NoteDto"
+        "400":
+          description: Invalid patch
+        "401":
+          description: Unauthorized
+        "404":
+          description: Caller has no note
+        "415":
+          description: Not application/merge-patch+json; Accept-Patch is advertised
+        "422":
+          description: text cannot be null
+    delete:
+      operationId: deleteNote
+      summary: Delete the caller's singleton note
+      tags: [note]
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+        "404":
+          description: Caller has no note
+
 components:
   schemas:
     HealthResponse:
@@ -207,6 +302,52 @@ components:
           type: string
           example: user1
 
+    NoteDto:
+      type: object
+      required: [id, title, text]
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        title:
+          type: string
+          maxLength: 120
+          example: Draft
+        text:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          example: First persist
+
+    NotePutRequest:
+      type: object
+      required: [title, text]
+      properties:
+        title:
+          type: string
+          maxLength: 120
+          example: Draft
+        text:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          example: First persist
+
+    NoteMergePatch:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          maxLength: 120
+          nullable: true
+        text:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          nullable: true
+
   securitySchemes:
     bearerAuth:
       type: http
@@ -220,3 +361,5 @@ tags:
     description: Demo CRUD/read API
   - name: auth
     description: Authentication per flows/login.md
+  - name: note
+    description: Singleton /api/note per ADR 006 and RAG crud-http

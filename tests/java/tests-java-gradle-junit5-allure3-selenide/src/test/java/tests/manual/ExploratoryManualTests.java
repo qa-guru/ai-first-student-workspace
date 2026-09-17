@@ -55,4 +55,17 @@ class ExploratoryManualTests extends AllureMeta {
         step("Sign in in a second tab, logout in the first — observe what the second tab shows on next action");
         step("Wait for token expiry (or shrink JWT_EXPIRATION_MS on a local stand) — expired session degrades to logged-out, not an error page");
     }
+
+    @Test
+    @Manual
+    @Tag("manual")
+    @DisplayName("Note singleton: XSS, concurrent PUT (idempotent, not 409), factory teardown")
+    void noteXssAndRaceCharter() {
+        step("Register a throwaway account (factory username). Never sign in as seed user1 / password1 — same charter on pipeline, stage, and prod");
+        step("Open / and PUT a note whose title and text contain <script>alert(1)</script> and an img onerror payload");
+        step("Reload: payload is plain text in the note fields; no alert, no script node in the note-panel DOM");
+        step("Fire overlapping PUT /api/note with the same JWT and two different bodies (two tabs or two HTTP clients) — last write wins; neither response is 409");
+        step("GET /api/note once: one complete snapshot (201 then 200, or two 200s), not a merge of both bodies");
+        step("DELETE /api/note then delete the factory account (teardown). Seed user1 is untouched");
+    }
 }

@@ -23,3 +23,9 @@ export function registerMessages(lang: Lang): AuthMessages {
 export const LOGIN_MESSAGES: AuthMessages = loginMessages('en');
 export const REGISTER_MESSAGES: AuthMessages = registerMessages('en');
 export const DELETE_ACCOUNT_CONFIRM = dictionaries.en.home.deleteConfirm;
+
+export const NOTE_MESSAGES = {
+  errorTextRequired: 'Text is required',
+  errorSaveFailed: 'Could not save the note',
+  errorDeleteFailed: 'Could not delete the note',
+};
